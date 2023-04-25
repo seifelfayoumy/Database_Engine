@@ -1,18 +1,10 @@
 import java.io.*;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Properties;
 import java.util.Vector;
 
-public abstract class Page {
-//    public int noOfTuples;
-//    public int maxTuples;
-//
-//
-//
-//    public Page(int max){
-//        this.noOfTuples = 0;
-//        this.maxTuples = max;
-//    }
+public abstract class Page implements Serializable {
 
     public static void writePage(String address, Vector<Hashtable<String, Object>> page) throws IOException {
         FileOutputStream fileOut = new FileOutputStream(address);
@@ -32,7 +24,129 @@ public abstract class Page {
         return pageObject;
     }
 
+    public static PageInfo insertToPage(PageInfo pageInfo, Hashtable<String, Object> tuple, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException, DuplicateRowException {
 
+        Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
+        for (int i = 0; i < tuples.size(); i++) {
+            if (tuples.get(i).get(clusteringKey).equals(tuple.get(clusteringKey))) {
+                throw new DuplicateRowException("duplicate clustring key");
+            }
+        }
+        if (pageInfo.noOfTuples < pageInfo.maxTuples) {
+            tuples.add(tuple);
+            Collections.sort(tuples, new PageComparator(clusteringKey));
+            pageInfo.minValue = tuples.firstElement().get(clusteringKey).toString();
+            pageInfo.maxValue = tuples.lastElement().get(clusteringKey).toString();
+            pageInfo.noOfTuples += 1;
+            if (pageInfo.noOfTuples == pageInfo.maxTuples) {
+                pageInfo.isFull = true;
+            }
+            Page.writePage(pageInfo.address, tuples);
+
+            return pageInfo;
+        } else {
+            throw new MaxRowsException("MAX ROWS");
+        }
+
+    }
+
+    public static PageInfo insertToFirstPage(PageInfo pageInfo, Hashtable<String, Object> tuple, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException, DuplicateRowException {
+
+        Vector<Hashtable<String, Object>> tuples = new Vector<Hashtable<String, Object>>();
+        tuples.add(tuple);
+        pageInfo.noOfTuples += 1;
+        pageInfo.minValue = tuple.get(clusteringKey).toString();
+        pageInfo.maxValue = tuple.get(clusteringKey).toString();
+        Page.writePage(pageInfo.address,tuples);
+        return pageInfo;
+
+    }
+
+    public static Hashtable<String, Object> getLastTuple(PageInfo pageInfo) throws IOException, ClassNotFoundException {
+        Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
+        return tuples.lastElement();
+    }
+    public static PageInfo removeLastTuple(PageInfo pageInfo, String clusteringKey) throws IOException, ClassNotFoundException {
+        Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
+        tuples.remove(tuples.size() - 1);
+        pageInfo.isFull = false;
+        pageInfo.noOfTuples -= 1;
+        pageInfo.minValue = tuples.firstElement().get(clusteringKey).toString();
+        pageInfo.maxValue = tuples.lastElement().get(clusteringKey).toString();
+        Page.writePage(pageInfo.address, tuples);
+        return pageInfo;
+    }
+
+    public static PageInfo deleteFromPage(PageInfo pageInfo, Hashtable<String, Object> deleteValues, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException {
+
+        Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
+
+        for (int i = 0; i < pageInfo.noOfTuples; i++) {
+            Enumeration<String> keys = deleteValues.keys();
+            Boolean deleteTuple = false;
+            while (keys.hasMoreElements()) {
+                String currColumnName = keys.nextElement();
+                if (tuples.get(i).get(currColumnName).equals(deleteValues.get(currColumnName))) {
+                    deleteTuple = true;
+                } else {
+                    deleteTuple = false;
+                }
+            }
+            if (deleteTuple) {
+                tuples.remove(i);
+                pageInfo.noOfTuples -= 1;
+            }
+        }
+        pageInfo.minValue = tuples.firstElement().get(clusteringKey).toString();
+        pageInfo.maxValue = tuples.lastElement().get(clusteringKey).toString();
+
+        if (pageInfo.noOfTuples == 0) {
+            //delete page
+        } else {
+            Page.writePage(pageInfo.address, tuples);
+        }
+
+        return pageInfo;
+
+    }
+
+    public static void updateFromPage(PageInfo pageInfo, Hashtable<String, Object> updateValues, String clusteringKey, String clusteringKeyValue) throws IOException, MaxRowsException, ClassNotFoundException {
+
+        Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
+
+        for (int i = 0; i < pageInfo.noOfTuples; i++) {
+            if (tuples.get(i).get(clusteringKey).equals(clusteringKeyValue)) {
+                Enumeration<String> keys = updateValues.keys();
+
+                while (keys.hasMoreElements()) {
+                    String currColumnName = keys.nextElement();
+                    tuples.get(i).replace(currColumnName, updateValues.get(currColumnName));
+                }
+            }
+        }
+
+        Page.writePage(pageInfo.address, tuples);
+
+//        page.minValue = page.tuples.firstElement().get(clusteringKey).toString();
+//        page.maxValue = page.tuples.lastElement().get(clusteringKey).toString();
+
+
+    }
+
+
+    public static void deletePage(String address) {
+        File pageFile = new File(address);
+        pageFile.delete();
+    }
+
+    public static void createPage(String address) {
+        File pageFile = new File(address);
+        try {
+            pageFile.createNewFile();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 
 }
