@@ -6,36 +6,46 @@ public class Main {
 
 
         try {
-//            DBApp dbApp = new DBApp();
-//
-//
-//            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-//            htblColNameValue.put("id", new Integer( 2343432 ));
-//            htblColNameValue.put("gpa", new Double( 0.95 ) );
-//            htblColNameValue.put("name", new String("Ahmed Noor" ) );
-//
-//            dbApp.insertIntoTable("user",htblColNameValue);
+            DBApp dbApp = new DBApp();
+
 
 //            Hashtable htblColNameType = new Hashtable();
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
-//            htblColNameType.put("gpa", "java.lang.double");
-//
+//            htblColNameType.put("gpa", "java.lang.Double");
+////
 //            Hashtable htblColNameMin = new Hashtable();
 //            htblColNameMin.put("id", "0");
-//            htblColNameMin.put("name", "0");
+//            htblColNameMin.put("name", "A");
 //            htblColNameMin.put("gpa", "0");
 //
 //            Hashtable htblColNameMax = new Hashtable();
-//            htblColNameMax.put("id", "100");
-//            htblColNameMax.put("name", "100");
-//            htblColNameMax.put("gpa", "100");
-
-                //System.out.println(Table.checkTypeForColumnValue("src/resources/metadata.csv","user","gpa", new Double(2)));
-                String x = "0";
-                Object y = new Integer(7);
-                System.out.println(x.toString().compareTo(y.toString()));
+//            htblColNameMax.put("id", "1000000");
+//            htblColNameMax.put("name", "ZZZZZZZZZZZ");
+//            htblColNameMax.put("gpa", "1000000");
+//
 //            dbApp.createTable("user", "id", htblColNameType, htblColNameMin, htblColNameMax);
+
+
+//
+//            Hashtable htblColNameValue = new Hashtable<String,Object>( );
+//            htblColNameValue.put("id", new Integer( 1000 ));
+//            htblColNameValue.put("gpa", new Double( 0.95 ) );
+//            htblColNameValue.put("name", new String("Ahmed" ) );
+//
+//            dbApp.insertIntoTable("user",htblColNameValue);
+//
+//
+            Hashtable htblColNameValue = new Hashtable<String,Object>( );
+            htblColNameValue.put("id", new Integer( 1000 ));
+
+            dbApp.deleteFromTable("user",htblColNameValue);
+
+
+
+//            String x = "9";
+//            String y = "100000000";
+//            System.out.println(x.compareTo(y));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

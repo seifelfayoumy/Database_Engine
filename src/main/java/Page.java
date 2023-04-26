@@ -101,11 +101,9 @@ public abstract class Page implements Serializable {
         pageInfo.minValue = tuples.firstElement().get(clusteringKey);
         pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
 
-        if (pageInfo.noOfTuples == 0) {
-            //delete page
-        } else {
-            Page.writePage(pageInfo.address, tuples);
-        }
+
+        Page.writePage(pageInfo.address, tuples);
+
 
         return pageInfo;
 
@@ -129,6 +127,7 @@ public abstract class Page implements Serializable {
 
 
     public static void deletePage(String address) {
+        System.out.println("testttt");
         File pageFile = new File(address);
         pageFile.delete();
     }

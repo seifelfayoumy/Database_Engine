@@ -1,4 +1,6 @@
-public class PageInfo {
+import java.io.Serializable;
+
+public class PageInfo implements Serializable {
     public int noOfTuples;
     public int maxTuples;
     public Object minValue;

@@ -39,7 +39,7 @@ public class Table implements Serializable {
             PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
             this.pages.add(newPage);
             Page.createPage(pageAddress);
-            this.pages.add(0, Page.insertToFirstPage(this.pages.get(0), tuple, this.clusteringKey));
+            this.pages.set(0, Page.insertToFirstPage(this.pages.get(0), tuple, this.clusteringKey));
         } else {
             for (int i = 0; i < this.pages.size(); i++) {
                 if (i != this.pages.size() - 1) {
@@ -55,17 +55,16 @@ public class Table implements Serializable {
                         }
                     }
                 } else {
-                    if (tuple.get(this.clusteringKey).toString().compareTo(this.pages.get(i).minValue.toString()) >= 0
-                            && tuple.get(this.clusteringKey).toString().compareTo(this.pages.get(i + 1).minValue.toString()) < 0) {
+                    if (tuple.get(this.clusteringKey).toString().compareTo(this.pages.get(i).minValue.toString()) >= 0) {
                         if (this.pages.get(i).isFull) {
                             Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
                             this.pages.set(i, Page.removeLastTuple(this.pages.get(i), this.clusteringKey));
                             this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey));
-                            String pageAddress = "src/resources/" + this.name + "_" + this.pages.size() + 1 + ".ser";
+                            String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
                             PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
                             this.pages.add(newPage);
                             Page.createPage(pageAddress);
-                            Page.insertToPage(newPage, lastTuple, this.clusteringKey);
+                            this.pages.set(this.pages.size() - 1, Page.insertToFirstPage(newPage, lastTuple, this.clusteringKey));
                         } else {
                             this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey));
                         }
@@ -98,7 +97,14 @@ public class Table implements Serializable {
 
     public void delete(Hashtable<String, Object> tuple) throws Exception {
         for (int i = 0; i < this.pages.size(); i++) {
-            this.pages.set(i, Page.deleteFromPage(this.pages.get(i), tuple, this.clusteringKey));
+            PageInfo deletedFrom = Page.deleteFromPage(this.pages.get(i), tuple, this.clusteringKey);
+            if(deletedFrom.noOfTuples == 0){
+                this.pages.remove(i);
+                Page.deletePage(deletedFrom.address);
+            }else{
+                this.pages.set(i,deletedFrom );
+            }
+
         }
         this.save();
     }

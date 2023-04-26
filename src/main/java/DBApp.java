@@ -84,13 +84,11 @@ public class DBApp {
         Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
-
                 try {
                     this.tables.get(i).update(strClusteringKeyValue, htblColNameValue);
                 } catch (Exception e) {
                     throw new DBAppException(e.getMessage());
                 }
-
             }
         }
     }
