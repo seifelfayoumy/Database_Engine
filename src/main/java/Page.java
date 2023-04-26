@@ -114,7 +114,6 @@ public abstract class Page implements Serializable {
     public static void updateFromPage(PageInfo pageInfo, Hashtable<String, Object> updateValues, String clusteringKey, String clusteringKeyValue) throws IOException, MaxRowsException, ClassNotFoundException {
 
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
-
         for (int i = 0; i < pageInfo.noOfTuples; i++) {
             if (tuples.get(i).get(clusteringKey).equals(clusteringKeyValue)) {
                 Enumeration<String> keys = updateValues.keys();
@@ -125,13 +124,7 @@ public abstract class Page implements Serializable {
                 }
             }
         }
-
         Page.writePage(pageInfo.address, tuples);
-
-//        page.minValue = page.tuples.firstElement().get(clusteringKey).toString();
-//        page.maxValue = page.tuples.lastElement().get(clusteringKey).toString();
-
-
     }
 
 

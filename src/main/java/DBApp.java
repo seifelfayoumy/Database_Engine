@@ -4,11 +4,9 @@ import java.util.Hashtable;
 
 public class DBApp {
     private ArrayList<Table> tables;
-    private String[] allowedDataTypes;
 
     public DBApp() throws DBAppException {
         this.tables = new ArrayList<Table>();
-        this.allowedDataTypes = new String[]{"java.lang.Integer", "java.lang.String", "java.lang.Double", "java.lang.Date"};
         this.init();
     }
 
@@ -30,11 +28,14 @@ public class DBApp {
             if (tableExists) {
                 throw new DBAppException("table name already exists");
             }
+            boolean correctTypes = Table.validateTypes(htblColNameType);
+            if (!correctTypes) {
+                throw new DBAppException("invalid column types");
+            }
         } catch (Exception e) {
             throw new DBAppException(e.getMessage());
         }
 
-        //check type for errors
 
         boolean equalHashtables = htblColNameType.keySet().equals(htblColNameMin.keySet()) && htblColNameType.keySet().equals(htblColNameMax.keySet());
         if (!equalHashtables) {
@@ -55,7 +56,7 @@ public class DBApp {
     public void insertIntoTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
-        Table.validateTuple("src/resources/metadata.csv",strTableName,htblColNameValue);
+        Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
@@ -69,6 +70,8 @@ public class DBApp {
                     throw new RuntimeException(e);
                 } catch (DuplicateRowException e) {
                     throw new RuntimeException(e);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
                 }
             }
         }
@@ -77,9 +80,33 @@ public class DBApp {
     public void updateTable(String strTableName,
                             String strClusteringKeyValue, Hashtable<String, Object> htblColNameValue)
             throws DBAppException {
+
+        Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
+        for (int i = 0; i < this.tables.size(); i++) {
+            if (this.tables.get(i).name.equals(strTableName)) {
+
+                try {
+                    this.tables.get(i).update(strClusteringKeyValue, htblColNameValue);
+                } catch (Exception e) {
+                    throw new DBAppException(e.getMessage());
+                }
+
+            }
+        }
     }
 
     public void deleteFromTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws DBAppException {
+        Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
+        for (int i = 0; i < this.tables.size(); i++) {
+            if (this.tables.get(i).name.equals(strTableName)) {
+                try {
+                    this.tables.get(i).delete(htblColNameValue);
+                } catch (Exception e) {
+                    throw new DBAppException(e.getMessage());
+                }
+
+            }
+        }
     }
 }

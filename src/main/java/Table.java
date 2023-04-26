@@ -16,6 +16,7 @@ public class Table implements Serializable {
     ArrayList<PageInfo> pages;
     String clusteringKey;
     int maxRows;
+    boolean isEmpty;
 
     public Table(String name, String clusteringKey) throws Exception {
 
@@ -27,11 +28,12 @@ public class Table implements Serializable {
         this.name = name;
         this.pages = new ArrayList<PageInfo>();
         this.clusteringKey = clusteringKey;
+        this.isEmpty = true;
 
         this.save();
     }
 
-    public void insert(Hashtable<String, Object> tuple) throws MaxRowsException, IOException, ClassNotFoundException, DuplicateRowException {
+    public void insert(Hashtable<String, Object> tuple) throws Exception {
         if (this.pages.size() == 0) {
             String pageAddress = "src/resources/" + this.name + "_1.ser";
             PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
@@ -71,8 +73,34 @@ public class Table implements Serializable {
                 }
             }
         }
+        this.isEmpty = false;
+        this.save();
 
 
+    }
+
+    public void update(String clusteringKeyValue, Hashtable<String, Object> tuple) throws Exception {
+        for (int i = 0; i < this.pages.size(); i++) {
+            if (i != this.pages.size() - 1) {
+                if (clusteringKeyValue.toString().compareTo(this.pages.get(i).minValue.toString()) >= 0
+                        && clusteringKeyValue.toString().compareTo(this.pages.get(i + 1).minValue.toString()) < 0) {
+                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusteringKeyValue);
+                }
+            } else {
+                if (clusteringKeyValue.toString().compareTo(this.pages.get(i).minValue.toString()) >= 0) {
+                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusteringKeyValue);
+                }
+            }
+
+        }
+        this.save();
+    }
+
+    public void delete(Hashtable<String, Object> tuple) throws Exception {
+        for (int i = 0; i < this.pages.size(); i++) {
+            this.pages.set(i, Page.deleteFromPage(this.pages.get(i), tuple, this.clusteringKey));
+        }
+        this.save();
     }
 
 
@@ -203,6 +231,24 @@ public class Table implements Serializable {
             Object currColumnValue = tuple.get(currColumnName);
             Table.validateTableColumn(csvAddress, tableName, currColumnName, currColumnValue);
         }
+    }
+
+    public static boolean validateTypes(Hashtable<String, String> nameType) {
+        boolean correct = false;
+        Enumeration<String> keys = nameType.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            String currColumnValue = nameType.get(currColumnName);
+
+            if (currColumnValue.equals("java.lang.Integer")
+                    || currColumnValue.equals("java.lang.Double")
+                    || currColumnValue.equals("java.lang.String")
+                    || currColumnValue.equals("java.lang.Date")) {
+                correct = true;
+            }
+
+        }
+        return correct;
     }
 
 
