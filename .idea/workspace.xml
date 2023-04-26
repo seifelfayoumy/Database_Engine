@@ -5,20 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48cc59ec-fb8a-49a7-a34f-4343ac540798" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/DuplicateRowException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/PageComparator.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/PageInfo.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DBApp.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Page.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/PageInfo.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/PageInfo.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Table.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/resources/DBApp.config" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/DBApp.config" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/metadata.csv" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/metadata.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/resources/user.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/DBApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/DBApp.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/Page.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Page.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Table.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Table.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -67,7 +62,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1682026059925</updated>
-      <workItem from="1682026063910" duration="67264000" />
+      <workItem from="1682026063910" duration="81648000" />
     </task>
     <servers />
   </component>

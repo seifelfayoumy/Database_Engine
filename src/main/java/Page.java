@@ -35,8 +35,8 @@ public abstract class Page implements Serializable {
         if (pageInfo.noOfTuples < pageInfo.maxTuples) {
             tuples.add(tuple);
             Collections.sort(tuples, new PageComparator(clusteringKey));
-            pageInfo.minValue = tuples.firstElement().get(clusteringKey).toString();
-            pageInfo.maxValue = tuples.lastElement().get(clusteringKey).toString();
+            pageInfo.minValue = tuples.firstElement().get(clusteringKey);
+            pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
             pageInfo.noOfTuples += 1;
             if (pageInfo.noOfTuples == pageInfo.maxTuples) {
                 pageInfo.isFull = true;
@@ -55,9 +55,9 @@ public abstract class Page implements Serializable {
         Vector<Hashtable<String, Object>> tuples = new Vector<Hashtable<String, Object>>();
         tuples.add(tuple);
         pageInfo.noOfTuples += 1;
-        pageInfo.minValue = tuple.get(clusteringKey).toString();
-        pageInfo.maxValue = tuple.get(clusteringKey).toString();
-        Page.writePage(pageInfo.address,tuples);
+        pageInfo.minValue = tuple.get(clusteringKey);
+        pageInfo.maxValue = tuple.get(clusteringKey);
+        Page.writePage(pageInfo.address, tuples);
         return pageInfo;
 
     }
@@ -66,13 +66,14 @@ public abstract class Page implements Serializable {
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
         return tuples.lastElement();
     }
+
     public static PageInfo removeLastTuple(PageInfo pageInfo, String clusteringKey) throws IOException, ClassNotFoundException {
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
         tuples.remove(tuples.size() - 1);
         pageInfo.isFull = false;
         pageInfo.noOfTuples -= 1;
-        pageInfo.minValue = tuples.firstElement().get(clusteringKey).toString();
-        pageInfo.maxValue = tuples.lastElement().get(clusteringKey).toString();
+        pageInfo.minValue = tuples.firstElement().get(clusteringKey);
+        pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
         Page.writePage(pageInfo.address, tuples);
         return pageInfo;
     }
@@ -97,8 +98,8 @@ public abstract class Page implements Serializable {
                 pageInfo.noOfTuples -= 1;
             }
         }
-        pageInfo.minValue = tuples.firstElement().get(clusteringKey).toString();
-        pageInfo.maxValue = tuples.lastElement().get(clusteringKey).toString();
+        pageInfo.minValue = tuples.firstElement().get(clusteringKey);
+        pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
 
         if (pageInfo.noOfTuples == 0) {
             //delete page

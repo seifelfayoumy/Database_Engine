@@ -1,8 +1,8 @@
 public class PageInfo {
     public int noOfTuples;
     public int maxTuples;
-    public String minValue;
-    public String maxValue;
+    public Object minValue;
+    public Object maxValue;
     public String address;
     public boolean isFull;
 
