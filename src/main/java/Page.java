@@ -99,7 +99,7 @@ public abstract class Page implements Serializable {
                 pageInfo.isFull = false;
             }
         }
-        if(pageInfo.noOfTuples != 0){
+        if (pageInfo.noOfTuples != 0) {
             pageInfo.minValue = tuples.firstElement().get(clusteringKey);
             pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
         }
@@ -127,7 +127,6 @@ public abstract class Page implements Serializable {
 
 
     public static void deletePage(String address) {
-        System.out.println("testttt");
         File pageFile = new File(address);
         pageFile.delete();
     }
@@ -139,6 +138,14 @@ public abstract class Page implements Serializable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static PageInfo renameFile(PageInfo pageInfo, String newAddress) {
+        File oldFile = new File(pageInfo.address);
+        File newFile = new File(newAddress);
+        oldFile.renameTo(newFile);
+        pageInfo.address = newAddress;
+        return pageInfo;
     }
 
 

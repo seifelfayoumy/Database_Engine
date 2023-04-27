@@ -1,8 +1,3 @@
-import java.lang.reflect.Type;
-import java.util.Hashtable;
-import java.util.Objects;
-import java.util.Vector;
-
 public class Main {
     public static void main(String[] args) {
         System.out.println("Started main function...");
@@ -11,7 +6,7 @@ public class Main {
         try {
             DBApp dbApp = new DBApp();
 
-//
+
 //            Hashtable htblColNameType = new Hashtable();
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
@@ -32,7 +27,7 @@ public class Main {
 
 //
 //            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-//            htblColNameValue.put("id", new Integer( 11 ));
+//            htblColNameValue.put("id", new Integer( 7 ));
 //            htblColNameValue.put("gpa", new Double( 0.95 ) );
 //            htblColNameValue.put("name", new String("Ahmed" ) );
 //
@@ -40,7 +35,7 @@ public class Main {
 //
 //
 //            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-//            htblColNameValue.put("id", new Integer( 4 ));
+//            htblColNameValue.put("id", new Integer( 7 ));
 //
 //            dbApp.deleteFromTable("user",htblColNameValue);
 
@@ -49,12 +44,13 @@ public class Main {
 //
 //            ((Double) x).compareTo(Double.parseDouble("22"));
 
-            Table.printAllPages("user","id");
+            Table.printAllPages("user", "id");
 
 
             //DUE
 //            insert: resursion , insert after deleteion into same page,
 //            inserting to values smaller than first page, inserting to values between pages
+            //      null wrapper when insert
 
         } catch (Exception e) {
             throw new RuntimeException(e);

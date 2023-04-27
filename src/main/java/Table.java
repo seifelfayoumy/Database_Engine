@@ -101,6 +101,7 @@ public class Table implements Serializable {
             if (deletedFrom.noOfTuples == 0) {
                 this.pages.remove(i);
                 Page.deletePage(deletedFrom.address);
+                this.renamePageFiles();
             } else {
                 this.pages.set(i, deletedFrom);
             }
@@ -325,6 +326,13 @@ public class Table implements Serializable {
                 System.out.print(page.get(j).get(clusterKey) + "  ");
             }
             System.out.println();
+        }
+    }
+
+    public void renamePageFiles() {
+        for (int i = 0; i < this.pages.size(); i++) {
+            String newAddress = "src/resources/" + this.name + "_" + (i + 1) + ".ser";
+            this.pages.set(i, Page.renameFile(this.pages.get(i), newAddress));
         }
     }
 
