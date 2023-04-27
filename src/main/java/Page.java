@@ -24,17 +24,17 @@ public abstract class Page implements Serializable {
         return pageObject;
     }
 
-    public static PageInfo insertToPage(PageInfo pageInfo, Hashtable<String, Object> tuple, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException, DuplicateRowException {
+    public static PageInfo insertToPage(PageInfo pageInfo, Hashtable<String, Object> tuple, String clusteringKey, String tableName, String csvAddress) throws IOException, MaxRowsException, ClassNotFoundException, DuplicateRowException {
 
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
         for (int i = 0; i < tuples.size(); i++) {
             if (tuples.get(i).get(clusteringKey).equals(tuple.get(clusteringKey))) {
-                throw new DuplicateRowException("duplicate clustring key");
+                throw new DuplicateRowException("duplicate clustering key");
             }
         }
         if (pageInfo.noOfTuples < pageInfo.maxTuples) {
             tuples.add(tuple);
-            Collections.sort(tuples, new PageComparator(clusteringKey));
+            Collections.sort(tuples, new PageComparator(tableName, csvAddress, clusteringKey));
             pageInfo.minValue = tuples.firstElement().get(clusteringKey);
             pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
             pageInfo.noOfTuples += 1;
@@ -96,15 +96,15 @@ public abstract class Page implements Serializable {
             if (deleteTuple) {
                 tuples.remove(i);
                 pageInfo.noOfTuples -= 1;
+                pageInfo.isFull = false;
             }
         }
-        pageInfo.minValue = tuples.firstElement().get(clusteringKey);
-        pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
-
+        if(pageInfo.noOfTuples != 0){
+            pageInfo.minValue = tuples.firstElement().get(clusteringKey);
+            pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
+        }
 
         Page.writePage(pageInfo.address, tuples);
-
-
         return pageInfo;
 
     }

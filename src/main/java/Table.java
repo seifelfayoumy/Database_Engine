@@ -17,6 +17,7 @@ public class Table implements Serializable {
     String clusteringKey;
     int maxRows;
     boolean isEmpty;
+    String csvAddress;
 
     public Table(String name, String clusteringKey) throws Exception {
 
@@ -29,6 +30,7 @@ public class Table implements Serializable {
         this.pages = new ArrayList<PageInfo>();
         this.clusteringKey = clusteringKey;
         this.isEmpty = true;
+        this.csvAddress = "src/resources/metadata.csv";
 
         this.save();
     }
@@ -41,32 +43,30 @@ public class Table implements Serializable {
             Page.createPage(pageAddress);
             this.pages.set(0, Page.insertToFirstPage(this.pages.get(0), tuple, this.clusteringKey));
         } else {
-            for (int i = 0; i < this.pages.size(); i++) {
+            int pagesSize = this.pages.size();
+            for (int i = 0; i < pagesSize; i++) {
                 if (i != this.pages.size() - 1) {
-                    if (tuple.get(this.clusteringKey).toString().compareTo(this.pages.get(i).minValue.toString()) >= 0
-                            && tuple.get(this.clusteringKey).toString().compareTo(this.pages.get(i + 1).minValue.toString()) < 0) {
+                    if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) >= 0
+                            && Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i + 1).minValue) < 0) {
                         if (this.pages.get(i).isFull) {
                             Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
                             this.pages.set(i, Page.removeLastTuple(this.pages.get(i), this.clusteringKey));
-                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey));
+                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
                             this.insert(lastTuple);
                         } else {
-                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey));
+                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
                         }
                     }
                 } else {
-                    if (tuple.get(this.clusteringKey).toString().compareTo(this.pages.get(i).minValue.toString()) >= 0) {
+                    if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) >= 0) {
                         if (this.pages.get(i).isFull) {
-                            Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
-                            this.pages.set(i, Page.removeLastTuple(this.pages.get(i), this.clusteringKey));
-                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey));
                             String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
                             PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
                             this.pages.add(newPage);
                             Page.createPage(pageAddress);
-                            this.pages.set(this.pages.size() - 1, Page.insertToFirstPage(newPage, lastTuple, this.clusteringKey));
+                            this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), tuple, this.clusteringKey));
                         } else {
-                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey));
+                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
                         }
                     }
                 }
@@ -81,12 +81,12 @@ public class Table implements Serializable {
     public void update(String clusteringKeyValue, Hashtable<String, Object> tuple) throws Exception {
         for (int i = 0; i < this.pages.size(); i++) {
             if (i != this.pages.size() - 1) {
-                if (clusteringKeyValue.toString().compareTo(this.pages.get(i).minValue.toString()) >= 0
-                        && clusteringKeyValue.toString().compareTo(this.pages.get(i + 1).minValue.toString()) < 0) {
+                if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) >= 0
+                        && Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i + 1).minValue) < 0) {
                     Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusteringKeyValue);
                 }
             } else {
-                if (clusteringKeyValue.toString().compareTo(this.pages.get(i).minValue.toString()) >= 0) {
+                if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) >= 0) {
                     Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusteringKeyValue);
                 }
             }
@@ -98,11 +98,11 @@ public class Table implements Serializable {
     public void delete(Hashtable<String, Object> tuple) throws Exception {
         for (int i = 0; i < this.pages.size(); i++) {
             PageInfo deletedFrom = Page.deleteFromPage(this.pages.get(i), tuple, this.clusteringKey);
-            if(deletedFrom.noOfTuples == 0){
+            if (deletedFrom.noOfTuples == 0) {
                 this.pages.remove(i);
                 Page.deletePage(deletedFrom.address);
-            }else{
-                this.pages.set(i,deletedFrom );
+            } else {
+                this.pages.set(i, deletedFrom);
             }
 
         }
@@ -182,7 +182,7 @@ public class Table implements Serializable {
                 if (columnValue instanceof String && nextRecord[2].equals("java.lang.String")
                         || columnValue instanceof Double && nextRecord[2].equals("java.lang.Double")
                         || columnValue instanceof Integer && nextRecord[2].equals("java.lang.Integer")
-                        || columnValue instanceof Date && nextRecord[2].equals("java.lang.Date")) {
+                        || columnValue instanceof Date && nextRecord[2].equals("java.util.Date")) {
                     correct = true;
                 }
             }
@@ -197,10 +197,33 @@ public class Table implements Serializable {
         String[] nextRecord;
         while ((nextRecord = csvReader.readNext()) != null) {
             if (nextRecord[0].equals(tableName) && nextRecord[1].equals(columnName)) {
-                if (columnValue.toString().compareTo(nextRecord[6].toString()) >= 0
-                        && columnValue.toString().compareTo(nextRecord[7].toString()) <= 0) {
-                    correct = true;
+                switch (nextRecord[2]) {
+                    case ("java.lang.Integer"):
+                        if (((Integer) columnValue).compareTo(Integer.parseInt(nextRecord[6])) >= 0
+                                && ((Integer) columnValue).compareTo(Integer.parseInt(nextRecord[7])) <= 0) {
+                            correct = true;
+                        }
+                        break;
+                    case ("java.lang.Double"):
+                        if (((Double) columnValue).compareTo(Double.parseDouble(nextRecord[6])) >= 0
+                                && ((Double) columnValue).compareTo(Double.parseDouble(nextRecord[7])) <= 0) {
+                            correct = true;
+                        }
+                        break;
+                    case ("java.util.Date"):
+                        if (((Date) columnValue).compareTo(new Date(nextRecord[6])) >= 0
+                                && ((Date) columnValue).compareTo(new Date(nextRecord[7])) <= 0) {
+                            correct = true;
+                        }
+                        break;
+                    case ("java.lang.String"):
+                        if (((String) columnValue).compareTo(nextRecord[6]) >= 0
+                                && ((String) columnValue).compareTo(nextRecord[7]) <= 0) {
+                            correct = true;
+                        }
+                        break;
                 }
+
             }
         }
         return correct;
@@ -249,12 +272,60 @@ public class Table implements Serializable {
             if (currColumnValue.equals("java.lang.Integer")
                     || currColumnValue.equals("java.lang.Double")
                     || currColumnValue.equals("java.lang.String")
-                    || currColumnValue.equals("java.lang.Date")) {
+                    || currColumnValue.equals("java.util.Date")) {
                 correct = true;
             }
 
         }
         return correct;
+    }
+
+    public static String getClusteringKeyTypeFromCSV(String csvAddress, String tableName) throws CsvValidationException, IOException {
+
+        String result = null;
+        FileReader filereader = new FileReader(csvAddress);
+        CSVReader csvReader = new CSVReader(filereader);
+        String[] nextRecord;
+        while ((nextRecord = csvReader.readNext()) != null) {
+            if (nextRecord[0].equals(tableName) && nextRecord[3].equals("True")) {
+                result = nextRecord[2];
+            }
+        }
+        return result;
+
+    }
+
+    public static int compareClusterKey(String csvAddress, String tableName, Object o1, Object o2) throws CsvValidationException, IOException {
+        String clusteringKeyType = Table.getClusteringKeyTypeFromCSV(csvAddress, tableName);
+        switch (clusteringKeyType) {
+            case "java.lang.String":
+                return ((String) o1).compareTo((String) o2);
+            case "java.lang.Integer":
+                return ((Integer) o1).compareTo((Integer) o2);
+            case "java.lang.Double":
+                return ((Double) o1).compareTo((Double) o2);
+            case "java.util.Date":
+                return ((Date) o1).compareTo((Date) o2);
+            default:
+                return 0;
+        }
+    }
+
+    public static void printAllPages(String tableName, String clusterKey) throws IOException, ClassNotFoundException {
+        FileInputStream fileIn = new FileInputStream("src/resources/" + tableName + "_table.ser");
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        Table table = (Table) in.readObject();
+        in.close();
+        fileIn.close();
+
+        for (int i = 0; i < table.pages.size(); i++) {
+            Vector<Hashtable<String, Object>> page = Page.readPage(table.pages.get(i).address);
+            System.out.print("page " + (i + 1) + " : ");
+            for (int j = 0; j < page.size(); j++) {
+                System.out.print(page.get(j).get(clusterKey) + "  ");
+            }
+            System.out.println();
+        }
     }
 
 
