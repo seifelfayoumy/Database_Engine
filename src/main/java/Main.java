@@ -28,16 +28,16 @@ public class Main {
 
 
 //
-            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-            htblColNameValue.put("id", new Integer( 65 ));
-            htblColNameValue.put("gpa", new Double( 0.95 ) );
-            htblColNameValue.put("name", new String("Ahmed" ) );
-
-            dbApp.insertIntoTable("user",htblColNameValue);
-//
-//
 //            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-//            htblColNameValue.put("id", new Integer( 7 ));
+//            htblColNameValue.put("id", new Integer( 2 ));
+//            htblColNameValue.put("gpa", new Double( 0.95 ) );
+////            htblColNameValue.put("name", new String("Ahmed" ) );
+//
+//            dbApp.insertIntoTable("user",htblColNameValue);
+//
+//
+//            Hashtable htblColNameValue = new Hashtable<String,Object>();
+//            htblColNameValue.put("id", new Integer( 90 ));
 //
 //            dbApp.deleteFromTable("user",htblColNameValue);
 
@@ -46,13 +46,16 @@ public class Main {
 //
 //            ((Double) x).compareTo(Double.parseDouble("22"));
 
-            Table.printAllPages("user", "id");
+//            Table.printAllPagesClusterKey("user","id");
+//            Table.printAllPages("user");
 
 
             //DUE
-//            insert: resursion , insert after deleteion into same page,
-//            inserting to values smaller than first page, inserting to values between pages
-            //      null wrapper when insert
+            //      null wrapper when insert. Done but gives error
+            //check al columns in table, done but not implemented
+            //check cluster key is available, done but not implemented
+            //throwing exceptions when input
+            //deleting pages from memory
 
         } catch (Exception e) {
             throw new RuntimeException(e);

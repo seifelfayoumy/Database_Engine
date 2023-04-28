@@ -282,6 +282,57 @@ public class Table implements Serializable {
             Object currColumnValue = tuple.get(currColumnName);
             Table.validateTableColumn(csvAddress, tableName, currColumnName, currColumnValue);
         }
+        try{
+            Table.setTupleNullValues(csvAddress,tableName,tuple);
+        }catch (Exception e){
+            throw new DBAppException(e.getMessage());
+        }
+
+    }
+
+    public static void setTupleNullValues(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException, CsvValidationException, IOException {
+
+        ArrayList<String> tableColumns = Table.getAllColumnsForTableFromCSV(csvAddress, tableName);
+        Enumeration<String> keys = tuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            tableColumns.remove(currColumnName);
+        }
+        for (int i = 0; i < tableColumns.size(); i++) {
+            tuple.put(tableColumns.get(i), new NullObject());
+        }
+    }
+
+    public static void checkTupleClusterKeyExists(Table table, Hashtable<String, Object> tuple) throws DBAppException {
+
+        String clusterKey = table.clusteringKey;
+        Boolean exist = false;
+        Enumeration<String> keys = tuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            if (currColumnName.equals(clusterKey)) {
+                exist = true;
+            }
+        }
+        if (!exist) {
+            throw new DBAppException("Cluster key column not provided");
+        }
+    }
+
+    public static void checkTupleColumnsInTable(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException, CsvValidationException, IOException {
+
+        ArrayList<String> tableColumns = Table.getAllColumnsForTableFromCSV(csvAddress, tableName);
+        Boolean exist = true;
+        Enumeration<String> keys = tuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            if (!tableColumns.contains(currColumnName)) {
+                exist = false;
+            }
+        }
+        if (!exist) {
+            throw new DBAppException("not all column names are in table");
+        }
     }
 
     public static boolean validateTypes(Hashtable<String, String> nameType) {
@@ -317,6 +368,21 @@ public class Table implements Serializable {
 
     }
 
+    public static ArrayList<String> getAllColumnsForTableFromCSV(String csvAddress, String tableName) throws CsvValidationException, IOException {
+
+        ArrayList<String> result = new ArrayList<String>();
+        FileReader filereader = new FileReader(csvAddress);
+        CSVReader csvReader = new CSVReader(filereader);
+        String[] nextRecord;
+        while ((nextRecord = csvReader.readNext()) != null) {
+            if (nextRecord[0].equals(tableName)) {
+                result.add(nextRecord[2]);
+            }
+        }
+        return result;
+
+    }
+
     public static int compareClusterKey(String csvAddress, String tableName, Object o1, Object o2) throws CsvValidationException, IOException {
         String clusteringKeyType = Table.getClusteringKeyTypeFromCSV(csvAddress, tableName);
         switch (clusteringKeyType) {
@@ -333,7 +399,7 @@ public class Table implements Serializable {
         }
     }
 
-    public static void printAllPages(String tableName, String clusterKey) throws IOException, ClassNotFoundException {
+    public static void printAllPagesClusterKey(String tableName, String clusterKey) throws IOException, ClassNotFoundException {
         FileInputStream fileIn = new FileInputStream("src/resources/" + tableName + "_table.ser");
         ObjectInputStream in = new ObjectInputStream(fileIn);
         Table table = (Table) in.readObject();
@@ -345,6 +411,29 @@ public class Table implements Serializable {
             System.out.print("page " + (i + 1) + " : ");
             for (int j = 0; j < page.size(); j++) {
                 System.out.print(page.get(j).get(clusterKey) + "  ");
+            }
+            System.out.println();
+        }
+    }
+
+    public static void printAllPages(String tableName) throws IOException, ClassNotFoundException {
+        FileInputStream fileIn = new FileInputStream("src/resources/" + tableName + "_table.ser");
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        Table table = (Table) in.readObject();
+        in.close();
+        fileIn.close();
+
+        for (int i = 0; i < table.pages.size(); i++) {
+            Vector<Hashtable<String, Object>> page = Page.readPage(table.pages.get(i).address);
+            System.out.println("page " + (i + 1) + " : ");
+            for (int j = 0; j < page.size(); j++) {
+                Enumeration<String> keys = page.get(j).keys();
+                while (keys.hasMoreElements()) {
+                    String currColumnName = keys.nextElement();
+                    System.out.print("  " + currColumnName + ": ");
+                    System.out.print(page.get(j).get(currColumnName));
+                }
+                System.out.println();
             }
             System.out.println();
         }

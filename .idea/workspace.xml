@@ -5,13 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48cc59ec-fb8a-49a7-a34f-4343ac540798" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/NullObject.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Table.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/metadata.csv" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/metadata.csv" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/user_1.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/user_2.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/user_3.ser" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/resources/user_4.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/user_table.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Table.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Table.class" afterDir="false" />
@@ -63,7 +64,7 @@
       <option name="presentableId" value="Default" />
       <updated>1682026059925</updated>
       <workItem from="1682026063910" duration="96905000" />
-      <workItem from="1682598435883" duration="21047000" />
+      <workItem from="1682598435883" duration="30710000" />
     </task>
     <servers />
   </component>
