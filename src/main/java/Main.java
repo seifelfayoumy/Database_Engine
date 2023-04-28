@@ -1,3 +1,5 @@
+import java.util.Hashtable;
+
 public class Main {
     public static void main(String[] args) {
         System.out.println("Started main function...");
@@ -6,7 +8,7 @@ public class Main {
         try {
             DBApp dbApp = new DBApp();
 
-
+//
 //            Hashtable htblColNameType = new Hashtable();
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
@@ -26,12 +28,12 @@ public class Main {
 
 
 //
-//            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-//            htblColNameValue.put("id", new Integer( 7 ));
-//            htblColNameValue.put("gpa", new Double( 0.95 ) );
-//            htblColNameValue.put("name", new String("Ahmed" ) );
-//
-//            dbApp.insertIntoTable("user",htblColNameValue);
+            Hashtable htblColNameValue = new Hashtable<String,Object>( );
+            htblColNameValue.put("id", new Integer( 14 ));
+            htblColNameValue.put("gpa", new Double( 0.95 ) );
+            htblColNameValue.put("name", new String("Ahmed" ) );
+
+            dbApp.insertIntoTable("user",htblColNameValue);
 //
 //
 //            Hashtable htblColNameValue = new Hashtable<String,Object>( );

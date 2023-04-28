@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
@@ -60,18 +59,9 @@ public class DBApp {
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
-
                     this.tables.get(i).insert(htblColNameValue);
-                } catch (MaxRowsException e) {
-                    throw new RuntimeException(e);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (ClassNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (DuplicateRowException e) {
-                    throw new RuntimeException(e);
                 } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    throw new DBAppException(e.getMessage());
                 }
             }
         }
