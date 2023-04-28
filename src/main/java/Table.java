@@ -45,9 +45,9 @@ public class Table implements Serializable {
         } else {
             int pagesSize = this.pages.size();
             for (int i = 0; i < pagesSize; i++) {
-                if (i == this.pages.size() - 1) {
-                    if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) > 0) {
-                        if (this.pages.get(i).isFull) {
+                if (i == pagesSize - 1) {
+                    if (this.pages.get(i).isFull) {
+                        if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) > 0) {
                             String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
                             PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
                             this.pages.add(newPage);
@@ -55,10 +55,22 @@ public class Table implements Serializable {
                             this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), tuple, this.clusteringKey));
                             break;
                         } else {
+                            Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
+                            this.pages.set(i, Page.removeLastTuple(this.pages.get(i), this.clusteringKey));
                             this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                            String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
+                            PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
+                            this.pages.add(newPage);
+                            Page.createPage(pageAddress);
+                            this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), lastTuple, this.clusteringKey));
                             break;
                         }
+
+                    } else {
+                        this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                        break;
                     }
+
                 } else {
                     if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i + 1).minValue) < 0) {
                         if (this.pages.get(i).isFull) {
@@ -345,7 +357,7 @@ public class Table implements Serializable {
         }
     }
 
-    public static void shiftDown(Table table, int i) throws IOException, ClassNotFoundException, MaxRowsException, DuplicateRowException {
+    public static void shiftDown(Table table, int i) throws Exception {
         if (i == table.pages.size() - 1) {
             if (table.pages.get(i).isFull) {
                 Hashtable<String, Object> lastTuple = Page.getLastTuple(table.pages.get(i));
@@ -363,9 +375,10 @@ public class Table implements Serializable {
                 Table.shiftDownHelper(table, i + 1, lastTuple);
             }
         }
+        table.save();
     }
 
-    private static void shiftDownHelper(Table table, int i, Hashtable<String, Object> tuple) throws MaxRowsException, IOException, ClassNotFoundException, DuplicateRowException {
+    private static void shiftDownHelper(Table table, int i, Hashtable<String, Object> tuple) throws Exception {
         if (i == table.pages.size() - 1) {
             if (table.pages.get(i).isFull) {
                 Hashtable<String, Object> lastTuple = Page.getLastTuple(table.pages.get(i));
@@ -389,6 +402,7 @@ public class Table implements Serializable {
                 table.pages.set(i, Page.insertToPage(table.pages.get(i), tuple, table.clusteringKey, table.name, table.csvAddress));
             }
         }
+        table.save();
     }
 
 

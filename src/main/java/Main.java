@@ -8,7 +8,7 @@ public class Main {
         try {
             DBApp dbApp = new DBApp();
 
-//
+////
 //            Hashtable htblColNameType = new Hashtable();
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
@@ -29,7 +29,7 @@ public class Main {
 
 //
             Hashtable htblColNameValue = new Hashtable<String,Object>( );
-            htblColNameValue.put("id", new Integer( 14 ));
+            htblColNameValue.put("id", new Integer( 65 ));
             htblColNameValue.put("gpa", new Double( 0.95 ) );
             htblColNameValue.put("name", new String("Ahmed" ) );
 
