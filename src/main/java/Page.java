@@ -1,8 +1,5 @@
 import java.io.*;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.*;
 
 public abstract class Page implements Serializable {
 
@@ -43,6 +40,9 @@ public abstract class Page implements Serializable {
             }
             Page.writePage(pageInfo.address, tuples);
 
+            tuples = null;
+            System.gc();
+
             return pageInfo;
         } else {
             throw new MaxRowsException("MAX ROWS");
@@ -52,19 +52,24 @@ public abstract class Page implements Serializable {
 
     public static PageInfo insertToFirstPage(PageInfo pageInfo, Hashtable<String, Object> tuple, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException, DuplicateRowException {
 
+
         Vector<Hashtable<String, Object>> tuples = new Vector<Hashtable<String, Object>>();
         tuples.add(tuple);
         pageInfo.noOfTuples += 1;
         pageInfo.minValue = tuple.get(clusteringKey);
         pageInfo.maxValue = tuple.get(clusteringKey);
         Page.writePage(pageInfo.address, tuples);
+        tuples = null;
+        System.gc();
         return pageInfo;
-
     }
 
     public static Hashtable<String, Object> getLastTuple(PageInfo pageInfo) throws IOException, ClassNotFoundException {
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
-        return tuples.lastElement();
+        Hashtable<String, Object> lastElement = tuples.lastElement();
+        tuples = null;
+        System.gc();
+        return lastElement;
     }
 
     public static PageInfo removeLastTuple(PageInfo pageInfo, String clusteringKey) throws IOException, ClassNotFoundException {
@@ -75,6 +80,8 @@ public abstract class Page implements Serializable {
         pageInfo.minValue = tuples.firstElement().get(clusteringKey);
         pageInfo.maxValue = tuples.lastElement().get(clusteringKey);
         Page.writePage(pageInfo.address, tuples);
+        tuples = null;
+        System.gc();
         return pageInfo;
     }
 
@@ -82,6 +89,7 @@ public abstract class Page implements Serializable {
 
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
 
+        ArrayList<Hashtable<String, Object>> deletedTuples = new ArrayList<Hashtable<String, Object>>();
         for (int i = 0; i < pageInfo.noOfTuples; i++) {
             Enumeration<String> keys = deleteValues.keys();
             Boolean deleteTuple = false;
@@ -91,13 +99,17 @@ public abstract class Page implements Serializable {
                     deleteTuple = true;
                 } else {
                     deleteTuple = false;
+                    break;
                 }
             }
             if (deleteTuple) {
-                tuples.remove(i);
-                pageInfo.noOfTuples -= 1;
-                pageInfo.isFull = false;
+                deletedTuples.add(tuples.get(i));
             }
+        }
+        for (int i = 0; i < deletedTuples.size(); i++) {
+            tuples.remove(deletedTuples.get(i));
+            pageInfo.noOfTuples -= 1;
+            pageInfo.isFull = false;
         }
         if (pageInfo.noOfTuples != 0) {
             pageInfo.minValue = tuples.firstElement().get(clusteringKey);
@@ -105,11 +117,13 @@ public abstract class Page implements Serializable {
         }
 
         Page.writePage(pageInfo.address, tuples);
+        tuples = null;
+        System.gc();
         return pageInfo;
 
     }
 
-    public static void updateFromPage(PageInfo pageInfo, Hashtable<String, Object> updateValues, String clusteringKey, String clusteringKeyValue) throws IOException, MaxRowsException, ClassNotFoundException {
+    public static void updateFromPage(PageInfo pageInfo, Hashtable<String, Object> updateValues, String clusteringKey, Object clusteringKeyValue) throws IOException, MaxRowsException, ClassNotFoundException {
 
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
         for (int i = 0; i < pageInfo.noOfTuples; i++) {
@@ -123,6 +137,8 @@ public abstract class Page implements Serializable {
             }
         }
         Page.writePage(pageInfo.address, tuples);
+        tuples = null;
+        System.gc();
     }
 
 

@@ -99,16 +99,34 @@ public class Table implements Serializable {
         this.save();
     }
 
-    public void update(String clusteringKeyValue, Hashtable<String, Object> tuple) throws Exception {
+    public void update(String tableName, String clusteringKeyValue, Hashtable<String, Object> tuple) throws Exception {
+        String clusteringKeyType = Table.getClusteringKeyTypeFromCSV(csvAddress, tableName);
+        Object clusterKeyValueObject = null;
+        switch (clusteringKeyType) {
+            case "java.lang.String":
+                clusterKeyValueObject = (String) clusteringKeyValue;
+                break;
+            case "java.lang.Integer":
+                clusterKeyValueObject = Integer.parseInt(clusteringKeyValue);
+                break;
+            case "java.lang.Double":
+                clusterKeyValueObject = Double.parseDouble(clusteringKeyValue);
+                break;
+            case "java.util.Date":
+                clusterKeyValueObject = Date.parse(clusteringKeyValue);
+                break;
+            default:
+                clusterKeyValueObject = new NullObject();
+        }
         for (int i = 0; i < this.pages.size(); i++) {
             if (i != this.pages.size() - 1) {
-                if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) >= 0
-                        && Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i + 1).minValue) < 0) {
-                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusteringKeyValue);
+                if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
+                        && Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i + 1).minValue) < 0) {
+                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
                 }
             } else {
-                if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).minValue) >= 0) {
-                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusteringKeyValue);
+                if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0) {
+                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
                 }
             }
 
@@ -117,17 +135,20 @@ public class Table implements Serializable {
     }
 
     public void delete(Hashtable<String, Object> tuple) throws Exception {
+        ArrayList<PageInfo> deletedPages = new ArrayList<PageInfo>();
         for (int i = 0; i < this.pages.size(); i++) {
             PageInfo deletedFrom = Page.deleteFromPage(this.pages.get(i), tuple, this.clusteringKey);
             if (deletedFrom.noOfTuples == 0) {
-                this.pages.remove(i);
                 Page.deletePage(deletedFrom.address);
-                this.renamePageFiles();
+                deletedPages.add(deletedFrom);
             } else {
                 this.pages.set(i, deletedFrom);
             }
-
         }
+        for (int i = 0; i < deletedPages.size(); i++) {
+            this.pages.remove(deletedPages.get(i));
+        }
+        this.renamePageFiles();
         this.save();
     }
 
@@ -178,6 +199,16 @@ public class Table implements Serializable {
         }
 
         return tables;
+    }
+
+    public static Table getTableFromDisk(String tableName) throws IOException, ClassNotFoundException {
+        Table table = null;
+        FileInputStream fileIn = new FileInputStream("src/resources/" + tableName + "_table.ser");
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        table = (Table) in.readObject();
+        in.close();
+        fileIn.close();
+        return table;
     }
 
     public static boolean tableExistsOnDisk(String csvAddress, String tableName) throws IOException, CsvValidationException {
@@ -266,12 +297,13 @@ public class Table implements Serializable {
         }
     }
 
-    public static void validateTuple(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException {
+    public static void validateTupleOnDelete(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException {
         try {
             boolean tableExists = Table.tableExistsOnDisk(csvAddress, tableName);
             if (!tableExists) {
                 throw new DBAppException("table does not exist");
             }
+            Table.checkTupleColumnsInTable(csvAddress, tableName, tuple);
         } catch (Exception e) {
             throw new DBAppException(e.getMessage());
         }
@@ -282,15 +314,61 @@ public class Table implements Serializable {
             Object currColumnValue = tuple.get(currColumnName);
             Table.validateTableColumn(csvAddress, tableName, currColumnName, currColumnValue);
         }
-        try{
-            Table.setTupleNullValues(csvAddress,tableName,tuple);
-        }catch (Exception e){
-            throw new DBAppException(e.getMessage());
-        }
 
     }
 
-    public static void setTupleNullValues(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException, CsvValidationException, IOException {
+    public static Hashtable<String, Object> validateTupleOnInsert(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException {
+        try {
+            boolean tableExists = Table.tableExistsOnDisk(csvAddress, tableName);
+            if (!tableExists) {
+                throw new DBAppException("table does not exist");
+            }
+            Table.checkTupleColumnsInTable(csvAddress, tableName, tuple);
+        } catch (Exception e) {
+            throw new DBAppException(e.getMessage());
+        }
+
+
+        Enumeration<String> keys = tuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            Object currColumnValue = tuple.get(currColumnName);
+            Table.validateTableColumn(csvAddress, tableName, currColumnName, currColumnValue);
+        }
+        try {
+            Table table = Table.getTableFromDisk(tableName);
+            Table.checkTupleClusterKeyExists(table, tuple);
+            Hashtable<String, Object> newTuple = Table.setTupleNullValues(csvAddress, tableName, tuple);
+            return newTuple;
+        } catch (Exception e) {
+            throw new DBAppException(e.getMessage());
+        }
+
+
+    }
+
+    public static void validateTupleOnUpdate(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException {
+        try {
+            boolean tableExists = Table.tableExistsOnDisk(csvAddress, tableName);
+            if (!tableExists) {
+                throw new DBAppException("table does not exist");
+            }
+            Table.checkTupleColumnsInTable(csvAddress, tableName, tuple);
+            Table table = Table.getTableFromDisk(tableName);
+            Table.checkTupleClusterKeyNotExists(table, tuple);
+        } catch (Exception e) {
+            throw new DBAppException(e.getMessage());
+        }
+
+        Enumeration<String> keys = tuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            Object currColumnValue = tuple.get(currColumnName);
+            Table.validateTableColumn(csvAddress, tableName, currColumnName, currColumnValue);
+        }
+    }
+
+    public static Hashtable<String, Object> setTupleNullValues(String csvAddress, String tableName, Hashtable<String, Object> tuple) throws DBAppException, CsvValidationException, IOException {
 
         ArrayList<String> tableColumns = Table.getAllColumnsForTableFromCSV(csvAddress, tableName);
         Enumeration<String> keys = tuple.keys();
@@ -301,6 +379,7 @@ public class Table implements Serializable {
         for (int i = 0; i < tableColumns.size(); i++) {
             tuple.put(tableColumns.get(i), new NullObject());
         }
+        return tuple;
     }
 
     public static void checkTupleClusterKeyExists(Table table, Hashtable<String, Object> tuple) throws DBAppException {
@@ -316,6 +395,21 @@ public class Table implements Serializable {
         }
         if (!exist) {
             throw new DBAppException("Cluster key column not provided");
+        }
+    }
+    public static void checkTupleClusterKeyNotExists(Table table, Hashtable<String, Object> tuple) throws DBAppException {
+
+        String clusterKey = table.clusteringKey;
+        Boolean exist = false;
+        Enumeration<String> keys = tuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            if (currColumnName.equals(clusterKey)) {
+                exist = true;
+            }
+        }
+        if (exist) {
+            throw new DBAppException("Cluster key column should not be changed");
         }
     }
 
@@ -376,7 +470,7 @@ public class Table implements Serializable {
         String[] nextRecord;
         while ((nextRecord = csvReader.readNext()) != null) {
             if (nextRecord[0].equals(tableName)) {
-                result.add(nextRecord[2]);
+                result.add(nextRecord[1]);
             }
         }
         return result;

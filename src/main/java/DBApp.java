@@ -55,11 +55,11 @@ public class DBApp {
     public void insertIntoTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
-        Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
+        Hashtable<String, Object> updatedTuple = Table.validateTupleOnInsert("src/resources/metadata.csv", strTableName, htblColNameValue);
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
-                    this.tables.get(i).insert(htblColNameValue);
+                    this.tables.get(i).insert(updatedTuple);
                 } catch (Exception e) {
                     throw new DBAppException(e.getMessage());
                 }
@@ -71,11 +71,11 @@ public class DBApp {
                             String strClusteringKeyValue, Hashtable<String, Object> htblColNameValue)
             throws DBAppException {
 
-        Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
+        Table.validateTupleOnUpdate("src/resources/metadata.csv", strTableName, htblColNameValue);
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
-                    this.tables.get(i).update(strClusteringKeyValue, htblColNameValue);
+                    this.tables.get(i).update(strTableName,strClusteringKeyValue, htblColNameValue);
                 } catch (Exception e) {
                     throw new DBAppException(e.getMessage());
                 }
@@ -85,7 +85,7 @@ public class DBApp {
 
     public void deleteFromTable(String strTableName,
                                 Hashtable<String, Object> htblColNameValue) throws DBAppException {
-        Table.validateTuple("src/resources/metadata.csv", strTableName, htblColNameValue);
+        Table.validateTupleOnDelete("src/resources/metadata.csv", strTableName, htblColNameValue);
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {

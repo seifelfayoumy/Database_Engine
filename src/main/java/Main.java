@@ -7,8 +7,8 @@ public class Main {
 
         try {
             DBApp dbApp = new DBApp();
-
-////
+//
+//
 //            Hashtable htblColNameType = new Hashtable();
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
@@ -28,34 +28,40 @@ public class Main {
 
 
 //
-//            Hashtable htblColNameValue = new Hashtable<String,Object>( );
-//            htblColNameValue.put("id", new Integer( 2 ));
-//            htblColNameValue.put("gpa", new Double( 0.95 ) );
-////            htblColNameValue.put("name", new String("Ahmed" ) );
+//            Hashtable htblColNameValue = new Hashtable<String, Object>();
+//            htblColNameValue.put("id", new Integer(100));
+//            htblColNameValue.put("gpa", new Double(11));
+//            htblColNameValue.put("name", new String("Ahmed" ) );
 //
-//            dbApp.insertIntoTable("user",htblColNameValue);
+//            dbApp.insertIntoTable("user", htblColNameValue);
+
+//            Hashtable htblColNameValue = new Hashtable<String, Object>();
+////            htblColNameValue.put("gpa", new Double(0.988));
+//            htblColNameValue.put("name", new String("Ahmed123" ) );
+////            htblColNameValue.put("id", new Integer(1 ) );
 //
+//            dbApp.updateTable("user","5", htblColNameValue);
+
 //
+////
 //            Hashtable htblColNameValue = new Hashtable<String,Object>();
-//            htblColNameValue.put("id", new Integer( 90 ));
+////            htblColNameValue.put("id", new Integer( 4 ));
+//            htblColNameValue.put("gpa", new Double( 11 ));
+////            htblColNameValue.put("name", new String( "Ahmed1" ));
 //
 //            dbApp.deleteFromTable("user",htblColNameValue);
 
-//            String y = "100000";
-//            Object x = new Integer(2);
+//            Object y = new Double(11.0);
+//            Object x = new Double(11);
+//            System.out.println(y.equals(x));
 //
 //            ((Double) x).compareTo(Double.parseDouble("22"));
 
 //            Table.printAllPagesClusterKey("user","id");
-//            Table.printAllPages("user");
+            Table.printAllPages("user");
 
 
-            //DUE
-            //      null wrapper when insert. Done but gives error
-            //check al columns in table, done but not implemented
-            //check cluster key is available, done but not implemented
-            //throwing exceptions when input
-            //deleting pages from memory
+
 
         } catch (Exception e) {
             throw new RuntimeException(e);
