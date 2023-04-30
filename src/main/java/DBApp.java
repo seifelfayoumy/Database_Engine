@@ -41,6 +41,10 @@ public class DBApp {
             throw new DBAppException("hashtables doesn't match");
         }
 
+        if (!htblColNameType.containsKey(strClusteringKeyColumn)) {
+            throw new DBAppException("invalid clustering key");
+        }
+
         try {
             Table.writeTableToCSV("src/resources/metadata.csv", strTableName, strClusteringKeyColumn, htblColNameType, htblColNameMin, htblColNameMax);
             Table table = new Table(strTableName, strClusteringKeyColumn);
@@ -75,7 +79,7 @@ public class DBApp {
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
-                    this.tables.get(i).update(strTableName,strClusteringKeyValue, htblColNameValue);
+                    this.tables.get(i).update(strTableName, strClusteringKeyValue, htblColNameValue);
                 } catch (Exception e) {
                     throw new DBAppException(e.getMessage());
                 }

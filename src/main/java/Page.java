@@ -1,3 +1,5 @@
+import com.opencsv.exceptions.CsvValidationException;
+
 import java.io.*;
 import java.util.*;
 
@@ -85,27 +87,58 @@ public abstract class Page implements Serializable {
         return pageInfo;
     }
 
-    public static PageInfo deleteFromPage(PageInfo pageInfo, Hashtable<String, Object> deleteValues, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException {
+    public static PageInfo deleteFromPage(String csvAddress, String tableName, PageInfo pageInfo, Hashtable<String, Object> deleteValues, String clusteringKey) throws IOException, MaxRowsException, ClassNotFoundException, CsvValidationException {
 
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
-
         ArrayList<Hashtable<String, Object>> deletedTuples = new ArrayList<Hashtable<String, Object>>();
-        for (int i = 0; i < pageInfo.noOfTuples; i++) {
-            Enumeration<String> keys = deleteValues.keys();
-            Boolean deleteTuple = false;
-            while (keys.hasMoreElements()) {
-                String currColumnName = keys.nextElement();
-                if (tuples.get(i).get(currColumnName).equals(deleteValues.get(currColumnName))) {
-                    deleteTuple = true;
-                } else {
-                    deleteTuple = false;
-                    break;
+        if (deleteValues.containsKey(clusteringKey)) {
+            //BINARY SEARCH
+            int l = 0, r = tuples.size() - 1;
+            while (l <= r) {
+                int m = l + (r - l) / 2;
+                // Check if x is present at mid
+                if (tuples.get(m).get(clusteringKey).equals(deleteValues.get(clusteringKey))) {
+                    Enumeration<String> keys = deleteValues.keys();
+                    Boolean deleteTuple = false;
+                    while (keys.hasMoreElements()) {
+                        String currColumnName = keys.nextElement();
+                        if (tuples.get(m).get(currColumnName).equals(deleteValues.get(currColumnName))) {
+                            deleteTuple = true;
+                        } else {
+                            deleteTuple = false;
+                            break;
+                        }
+                    }
+                    if (deleteTuple) {
+                        deletedTuples.add(tuples.get(m));
+                    }
+                }
+                // If x greater, ignore left half
+                if (Table.compareClusterKey(csvAddress, tableName, tuples.get(m).get(clusteringKey), deleteValues.get(clusteringKey)) < 0)
+                    l = m + 1;
+                    // If x is smaller, ignore right half
+                else
+                    r = m - 1;
+            }
+        } else {
+            for (int i = 0; i < pageInfo.noOfTuples; i++) {
+                Enumeration<String> keys = deleteValues.keys();
+                Boolean deleteTuple = false;
+                while (keys.hasMoreElements()) {
+                    String currColumnName = keys.nextElement();
+                    if (tuples.get(i).get(currColumnName).equals(deleteValues.get(currColumnName))) {
+                        deleteTuple = true;
+                    } else {
+                        deleteTuple = false;
+                        break;
+                    }
+                }
+                if (deleteTuple) {
+                    deletedTuples.add(tuples.get(i));
                 }
             }
-            if (deleteTuple) {
-                deletedTuples.add(tuples.get(i));
-            }
         }
+
         for (int i = 0; i < deletedTuples.size(); i++) {
             tuples.remove(deletedTuples.get(i));
             pageInfo.noOfTuples -= 1;
@@ -123,19 +156,29 @@ public abstract class Page implements Serializable {
 
     }
 
-    public static void updateFromPage(PageInfo pageInfo, Hashtable<String, Object> updateValues, String clusteringKey, Object clusteringKeyValue) throws IOException, MaxRowsException, ClassNotFoundException {
+    public static void updateFromPage(String csvAddress, String tableName, PageInfo pageInfo, Hashtable<String, Object> updateValues, String clusteringKey, Object clusteringKeyValue) throws IOException, MaxRowsException, ClassNotFoundException, CsvValidationException {
 
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
-        for (int i = 0; i < pageInfo.noOfTuples; i++) {
-            if (tuples.get(i).get(clusteringKey).equals(clusteringKeyValue)) {
+        //BINARY SEARCH
+        int l = 0, r = tuples.size() - 1;
+        while (l <= r) {
+            int m = l + (r - l) / 2;
+            // Check if x is present at mid
+            if (tuples.get(m).get(clusteringKey).equals(clusteringKeyValue)) {
                 Enumeration<String> keys = updateValues.keys();
-
                 while (keys.hasMoreElements()) {
                     String currColumnName = keys.nextElement();
-                    tuples.get(i).replace(currColumnName, updateValues.get(currColumnName));
+                    tuples.get(m).replace(currColumnName, updateValues.get(currColumnName));
                 }
             }
+            // If x greater, ignore left half
+            if (Table.compareClusterKey(csvAddress, tableName, tuples.get(m).get(clusteringKey), clusteringKeyValue) < 0)
+                l = m + 1;
+                // If x is smaller, ignore right half
+            else
+                r = m - 1;
         }
+
         Page.writePage(pageInfo.address, tuples);
         tuples = null;
         System.gc();

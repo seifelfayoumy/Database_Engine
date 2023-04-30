@@ -113,7 +113,7 @@ public class Table implements Serializable {
                 clusterKeyValueObject = Double.parseDouble(clusteringKeyValue);
                 break;
             case "java.util.Date":
-                clusterKeyValueObject = Date.parse(clusteringKeyValue);
+                clusterKeyValueObject = new Date(clusteringKeyValue);
                 break;
             default:
                 clusterKeyValueObject = new NullObject();
@@ -122,14 +122,13 @@ public class Table implements Serializable {
             if (i != this.pages.size() - 1) {
                 if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
                         && Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i + 1).minValue) < 0) {
-                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                    Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
                 }
             } else {
                 if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0) {
-                    Page.updateFromPage(this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                    Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
                 }
             }
-
         }
         this.save();
     }
@@ -137,7 +136,7 @@ public class Table implements Serializable {
     public void delete(Hashtable<String, Object> tuple) throws Exception {
         ArrayList<PageInfo> deletedPages = new ArrayList<PageInfo>();
         for (int i = 0; i < this.pages.size(); i++) {
-            PageInfo deletedFrom = Page.deleteFromPage(this.pages.get(i), tuple, this.clusteringKey);
+            PageInfo deletedFrom = Page.deleteFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey);
             if (deletedFrom.noOfTuples == 0) {
                 Page.deletePage(deletedFrom.address);
                 deletedPages.add(deletedFrom);
@@ -339,6 +338,9 @@ public class Table implements Serializable {
             Table table = Table.getTableFromDisk(tableName);
             Table.checkTupleClusterKeyExists(table, tuple);
             Hashtable<String, Object> newTuple = Table.setTupleNullValues(csvAddress, tableName, tuple);
+            if (!tuple.containsKey(table.clusteringKey)) {
+                throw new DBAppException("clustering key not provided");
+            }
             return newTuple;
         } catch (Exception e) {
             throw new DBAppException(e.getMessage());
@@ -397,6 +399,7 @@ public class Table implements Serializable {
             throw new DBAppException("Cluster key column not provided");
         }
     }
+
     public static void checkTupleClusterKeyNotExists(Table table, Hashtable<String, Object> tuple) throws DBAppException {
 
         String clusterKey = table.clusteringKey;
@@ -441,6 +444,9 @@ public class Table implements Serializable {
                     || currColumnValue.equals("java.lang.String")
                     || currColumnValue.equals("java.util.Date")) {
                 correct = true;
+            } else {
+                correct = false;
+                break;
             }
 
         }
