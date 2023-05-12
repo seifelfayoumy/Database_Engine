@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component LANGUAGE_LEVEL="JDK_19" jdk="19" jdk_type="JavaSDK">
+	<output-test url="file://$MODULE_DIR$/target/test-classes"/>
+	<contentEntry url="file://$MODULE_DIR$">
+		<testFolder url="file://$MODULE_DIR$/src/test/java"/>
+		<excludeFolder url="file://$MODULE_DIR$/target"/>
+	</contentEntry>
+	<levels>
+		<level name="Maven: com.opencsv:opencsv:5.7.0" value="project"/>
+		<level name="Maven: org.apache.commons:commons-lang3:3.12.0" value="project"/>
+		<level name="Maven: org.apache.commons:commons-text:1.9" value="project"/>
+		<level name="Maven: commons-beanutils:commons-beanutils:1.9.4" value="project"/>
+		<level name="Maven: commons-logging:commons-logging:1.2" value="project"/>
+		<level name="Maven: commons-collections:commons-collections:3.2.2" value="project"/>
+		<level name="Maven: org.apache.commons:commons-collections4:4.4" value="project"/>
+		<level name="Maven: com.intellij:forms_rt:7.0.3" value="project"/>
+		<level name="Maven: asm:asm-commons:3.0" value="project"/>
+		<level name="Maven: asm:asm-tree:3.0" value="project"/>
+		<level name="Maven: asm:asm:3.0" value="project"/>
+		<level name="Maven: com.jgoodies:forms:1.1-preview" value="project"/>
+		<level name="Maven: jdom:jdom:1.0" value="project"/>
+	</levels>
+</component>
