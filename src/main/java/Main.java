@@ -1,3 +1,6 @@
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Hashtable;
 
@@ -62,6 +65,26 @@ public class Main {
                 //            Table.printAllPagesClusterKey("user","id");
                 //Table.printAllPages("user");
 
+             Date d1 = new Date("11/07/1990");
+            Date d2 = new Date("11/07/2020");
+            long diff = (d2.getTime() - d1.getTime())/2;
+            int monthDiff = (d2.getMonth() - d1.getMonth())/2;
+            int hourDiff = (d2.getHours() - d1.getHours())/2;
+            int yearDiff = (d2.getYear() - d1.getYear())/2;
+            Calendar c = Calendar.getInstance();
+            c.setTime(d1);
+            c.add(Calendar.MONTH,monthDiff);
+            c.add(Calendar.HOUR,hourDiff);
+            c.add(Calendar.YEAR,yearDiff);
+            Date newD = c.getTime();
+
+            System.out.println(newD );
+
+           // ChronoUnit.DAYS.between(d1,d2);
+           // LocalDate median = d1.plusDays(ChronoUnit.DAYS.between(gerbutsmin, gerbutsmax) / 2);
+         //  System.out.println(test);
+
+           // System.out.println("a".compareTo("z"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

@@ -101,4 +101,14 @@ public class DBApp {
             }
         }
     }
+
+    public void createIndex(String strTableName,
+                            String[] strarrColName) throws DBAppException{
+        if(strarrColName.length != 3){
+            throw new DBAppException("columns number should be 3 to make an index");
+        }
+
+
+
+    }
 }
