@@ -1,8 +1,12 @@
+import com.opencsv.CSVWriter;
+
+import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class DBApp {
-    private ArrayList<Table> tables;
+    public ArrayList<Table> tables;
 
     public DBApp() throws DBAppException {
         this.tables = new ArrayList<Table>();
@@ -60,6 +64,14 @@ public class DBApp {
                                 Hashtable<String, Object> htblColNameValue) throws DBAppException {
 
         Hashtable<String, Object> updatedTuple = Table.validateTupleOnInsert("src/resources/metadata.csv", strTableName, htblColNameValue);
+        Enumeration<String> keys = updatedTuple.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            if(updatedTuple.get(currColumnName) instanceof String){
+                String newValue = updatedTuple.get(currColumnName).toString().toLowerCase();
+                updatedTuple.replace(currColumnName, newValue);
+            }
+        }
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
@@ -106,6 +118,24 @@ public class DBApp {
                             String[] strarrColName) throws DBAppException{
         if(strarrColName.length != 3){
             throw new DBAppException("columns number should be 3 to make an index");
+        }
+        try {
+            boolean tableExists = Table.tableExistsOnDisk("src/resources/metadata.csv", strTableName);
+            if (!tableExists) {
+                throw new DBAppException("table does not exist");
+            }
+        } catch (Exception e) {
+            throw new DBAppException(e.getMessage());
+        }
+
+        for (int i = 0; i < this.tables.size(); i++) {
+            if (this.tables.get(i).name.equals(strTableName)) {
+                try {
+                    this.tables.get(i).addIndex(strarrColName);
+                } catch (Exception e) {
+                    throw new DBAppException(e.getMessage());
+                }
+            }
         }
 
 

@@ -1,33 +1,102 @@
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.io.*;
+import java.util.*;
 
-public class Octree{
+public class Octree implements Serializable {
     String tableName;
     String[] columns;
     ArrayList<OctreeNode> nodes;
     int maxPerNode;
-    String dataType;
+
     OctreeNode root;
 
-    public Octree(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY,Object minZ, Object maxZ, String typeZ, String tableName, String[] columns, int maxPerNode, String dataType){
+    public Octree(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY,Object minZ, Object maxZ, String typeZ, String tableName, String[] columns, int maxPerNode){
         this.nodes = new ArrayList<OctreeNode>();
         this.tableName = tableName;
         this.columns = columns;
         this.maxPerNode = maxPerNode;
         this.root = new OctreeNode(minX, maxX, typeX,minY,maxY,typeY,minZ,maxZ,typeZ,maxPerNode);
-        this.dataType = dataType;
     }
 
-    public void save() throws Exception {
-        FileOutputStream fileOut = new FileOutputStream("src/resources/index_" + this.tableName + "_"+ this.columns[0] + "_"+this.columns[1]+"_"+this.columns[2]+".ser");
+    public void save(String address) throws Exception {
+        FileOutputStream fileOut = new FileOutputStream(address);
         ObjectOutputStream out = new ObjectOutputStream(fileOut);
         out.writeObject(this);
         out.close();
         fileOut.close();
     }
+    public static Octree read(String address) throws Exception {
+        FileInputStream fileIn = new FileInputStream(address);
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        Octree tree = (Octree) in.readObject();
+        in.close();
+        fileIn.close();
+
+        return tree;
+    }
+
+    public IndexReference search(Object x, Object y, Object z){
+        return this.searchHelper(x,y,z,this.root);
+    }
+    private IndexReference searchHelper(Object x, Object y, Object z, OctreeNode node) {
+        if (node.isLeaf) {
+            for (IndexReference ref : node.content) {
+                if (Octree.compareKey(x, ref.x, node.typeX) == 0 &&
+                        Octree.compareKey(y, ref.y, node.typeY) == 0 &&
+                        Octree.compareKey(z, ref.z, node.typeZ) == 0) {
+                    return ref;
+                }
+            }
+        } else {
+            for (OctreeNode child : node.children) {
+                if (child.correctPosition(x, y, z)) {
+                    return this.searchHelper(x, y, z, child);
+                }
+            }
+        }
+        return null;
+    }
+
+    public void delete(Object x, Object y, Object z) {
+        deleteHelper(x, y, z, root);
+    }
+
+    private void deleteHelper(Object x, Object y, Object z, OctreeNode node) {
+        if (node.isLeaf) {
+            Iterator<IndexReference> iterator = node.content.iterator();
+            while (iterator.hasNext()) {
+                IndexReference ref = iterator.next();
+                if (Octree.compareKey(x, ref.x, node.typeX) == 0 &&
+                        Octree.compareKey(y, ref.y, node.typeY) == 0 &&
+                        Octree.compareKey(z, ref.z, node.typeZ) == 0) {
+                    iterator.remove();
+                    node.isFull = false;
+                    break;
+                }
+            }
+        } else {
+            for (OctreeNode child : node.children) {
+                if (child.correctPosition(x, y, z)) {
+                    deleteHelper(x, y, z, child);
+                    break;
+                }
+            }
+            // After deletion, check if total content of all children is less than the maximum per node.
+            // If so, remove children and make this node a leaf with all the children's content.
+            int totalContent = 0;
+            for (OctreeNode child : node.children) {
+                totalContent += child.content.size();
+            }
+            if (totalContent <= node.maxData) {
+                for (OctreeNode child : node.children) {
+                    node.content.addAll(child.content);
+                }
+                node.children.clear();
+                node.isLeaf = true;
+            }
+        }
+    }
+
+
 
     public void insert(IndexReference value){
         this.insertHelper(value, this.root);
@@ -133,4 +202,19 @@ public class Octree{
                 return 0;
         }
     }
+
+    public static void printOctree(Octree tree){
+        Octree.printOctreeHelper(tree.root);
+    }
+    private static void printOctreeHelper(OctreeNode node){
+        if(node.isLeaf){
+            System.out.println("[("+node.minX+ ","+ node.minY+","+ node.minZ+") ("+node.maxX+","+node.maxY+","+node.maxZ+")]");
+            for (int i=0;i<node.content.size();i++){
+                System.out.print(node.content.get(i));
+            }
+        }else{
+            System.out.println("[("+node.minX+ ","+ node.minY+","+ node.minZ+") ("+node.maxX+","+node.maxY+","+node.maxZ+")]");
+        }
+    }
+
 }

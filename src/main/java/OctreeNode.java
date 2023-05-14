@@ -1,8 +1,9 @@
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Hashtable;
 
-public class OctreeNode{
+public class OctreeNode implements Serializable {
 
     Object minX;
     Object maxX;
@@ -26,12 +27,12 @@ public class OctreeNode{
         this.typeX = typeX;
         this.minY = minY;
         this.maxY = maxY;
-        this.typeX = typeY;
+        this.typeY = typeY;
         this.minZ = minZ;
         this.maxZ = maxZ;
-        this.typeX = typeZ;
+        this.typeZ = typeZ;
         this.isLeaf = true;
-        this.isLeaf = false;
+        this.isFull = false;
         this.content = new ArrayList<IndexReference>();
         this.maxData = maxData;
     }

@@ -1,0 +1,3 @@
+user,gpa,java.lang.Double,False,null,null,0,10000
+user,name,java.lang.String,False,null,null,AAAAAAAA,ZZZZZZZ
+user,id,java.lang.Integer,True,null,null,0,10000
