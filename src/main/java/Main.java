@@ -19,12 +19,12 @@ public class Main {
 //
 //            Hashtable htblColNameMin = new Hashtable( );
 //            htblColNameMin.put("id", "0");
-//            htblColNameMin.put("name", "AAAAAAAA");
+//            htblColNameMin.put("name", "A");
 //            htblColNameMin.put("gpa", "0");
 //
 //            Hashtable htblColNameMax = new Hashtable( );
 //            htblColNameMax.put("id", "10000");
-//            htblColNameMax.put("name", "ZZZZZZZ");
+//            htblColNameMax.put("name", "zzzzzzzzzzzz");
 //            htblColNameMax.put("gpa", "10000");
 //
 //            String strTableName = "user";
@@ -32,18 +32,21 @@ public class Main {
 //            dbApp.createTable( strTableName,"id",htblColNameType,htblColNameMin,htblColNameMax);
 //
 //            dbApp.createIndex("user", new String[]{"id", "name", "gpa"});
-
-
-                Table.printAllIndexes("user");
-
-
-
-//                            Hashtable htblColNameValue = new Hashtable<String, Object>();
-//                            htblColNameValue.put("id", new Integer(50));
-//                            htblColNameValue.put("gpa", new Double(11));
-//                            htblColNameValue.put("name", new String("Ahmed" ) );
 //
-//                            dbApp.insertIntoTable("user", htblColNameValue);
+
+//
+
+
+//
+                            Hashtable htblColNameValue = new Hashtable<String, Object>();
+                            htblColNameValue.put("id", new Integer(3));
+                            htblColNameValue.put("gpa", new Double(11));
+                            htblColNameValue.put("name", new String("Ahmed" ) );
+
+                            dbApp.insertIntoTable("user", htblColNameValue);
+
+
+            Table.printAllIndexes("user");
 
 //                            Hashtable htblColNameValue = new Hashtable<String, Object>();
 ////                            htblColNameValue.put("gpa", new Double(0.988));
@@ -68,7 +71,7 @@ public class Main {
                 //            ((Double) x).compareTo(Double.parseDouble("22"));
 
                 //            Table.printAllPagesClusterKey("user","id");
-                //Table.printAllPages("user");
+//                Table.printAllPages("user");
 
 
 
@@ -78,7 +81,7 @@ public class Main {
            // LocalDate median = d1.plusDays(ChronoUnit.DAYS.between(gerbutsmin, gerbutsmax) / 2);
          //  System.out.println(test);
 
-           // System.out.println("a".compareTo("z"));
+//            System.out.println("A".compareTo("zzzzzzzzzz"));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

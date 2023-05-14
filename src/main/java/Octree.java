@@ -9,12 +9,12 @@ public class Octree implements Serializable {
 
     OctreeNode root;
 
-    public Octree(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY,Object minZ, Object maxZ, String typeZ, String tableName, String[] columns, int maxPerNode){
+    public Octree(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY, Object minZ, Object maxZ, String typeZ, String tableName, String[] columns, int maxPerNode) {
         this.nodes = new ArrayList<OctreeNode>();
         this.tableName = tableName;
         this.columns = columns;
         this.maxPerNode = maxPerNode;
-        this.root = new OctreeNode(minX, maxX, typeX,minY,maxY,typeY,minZ,maxZ,typeZ,maxPerNode);
+        this.root = new OctreeNode(minX, maxX, typeX, minY, maxY, typeY, minZ, maxZ, typeZ, maxPerNode);
     }
 
     public void save(String address) throws Exception {
@@ -24,6 +24,7 @@ public class Octree implements Serializable {
         out.close();
         fileOut.close();
     }
+
     public static Octree read(String address) throws Exception {
         FileInputStream fileIn = new FileInputStream(address);
         ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -34,9 +35,10 @@ public class Octree implements Serializable {
         return tree;
     }
 
-    public IndexReference search(Object x, Object y, Object z){
-        return this.searchHelper(x,y,z,this.root);
+    public IndexReference search(Object x, Object y, Object z) {
+        return this.searchHelper(x, y, z, this.root);
     }
+
     private IndexReference searchHelper(Object x, Object y, Object z, OctreeNode node) {
         if (node.isLeaf) {
             for (IndexReference ref : node.content) {
@@ -97,7 +99,6 @@ public class Octree implements Serializable {
     }
 
 
-
     public void insert(IndexReference value){
         this.insertHelper(value, this.root);
     }
@@ -106,9 +107,20 @@ public class Octree implements Serializable {
         if(node.isLeaf){
             if(!node.isFull){
                 node.insert(value);
-                return;
             }else{
                 node.createChildren();
+                ArrayList<IndexReference> oldContent = new ArrayList<IndexReference>(node.content);
+                node.content.clear();
+                node.isFull = false;
+
+                for(int i=0;i<oldContent.size();i++){
+                    for(int j =0;j<8;j++){
+                        if(node.children.get(j).correctPosition(oldContent.get(i).x,oldContent.get(i).y,oldContent.get(i).z)){
+                            node.children.get(j).insert(oldContent.get(i));
+                            break;
+                        }
+                    }
+                }
                 this.insertHelper(value, node);
             }
         }else{
@@ -116,12 +128,17 @@ public class Octree implements Serializable {
                 OctreeNode currNode = node.children.get(i);
                 if(currNode.correctPosition(value.x, value.y, value.z)){
                     this.insertHelper(value, currNode);
+                    break;
                 }
             }
         }
     }
 
-    public static int compareKey(Object o1, Object o2, String dataType){
+
+
+
+
+    public static int compareKey(Object o1, Object o2, String dataType) {
         switch (dataType) {
             case "java.lang.String":
                 return ((String) o1).compareTo((String) o2);
@@ -134,87 +151,102 @@ public class Octree implements Serializable {
             default:
                 return 0;
         }
-
-
     }
 
-    static String getMiddleString(String S, String T)
-    {
-        int N = Math.min(S.length(), T.length());
-        // Stores the base 26 digits after addition
-        int[] a1 = new int[N + 1];
+    static String getMiddleString(String a, String b) {
+        // ensure a is lexicographically smaller than b
+        if (a.compareTo(b) > 0) {
+            String temp = a;
+            a = b;
+            b = temp;
+        }
+        char[] aArr = a.toCharArray();
+        char[] bArr = b.toCharArray();
+        char[] midArr = new char[Math.max(aArr.length, bArr.length)];
+        Arrays.fill(midArr, 'a');
 
-        for (int i = 0; i < N; i++) {
-            a1[i + 1] = (int)S.charAt(i) - 97
-                    + (int)T.charAt(i) - 97;
+        for (int i = 0; i < Math.min(aArr.length, bArr.length); i++) {
+            int avg = (aArr[i] + bArr[i]) / 2;
+            midArr[i] = (char) avg;
+            if(aArr[i] < avg && avg < bArr[i]) break;
         }
 
-        // Iterate from right to left
-        // and add carry to next position
-        for (int i = N; i >= 1; i--) {
-            a1[i - 1] += (int)a1[i] / 26;
-            a1[i] %= 26;
+        String middle = new String(midArr);
+        if (a.compareTo(middle) < 0 && middle.compareTo(b) < 0) {
+            return middle;
+        } else {
+            return null;
         }
-
-        // Reduce the number to find the middle
-        // string by dividing each position by 2
-        for (int i = 0; i <= N; i++) {
-
-            // If current value is odd,
-            // carry 26 to the next index value
-            if ((a1[i] & 1) != 0) {
-
-                if (i + 1 <= N) {
-                    a1[i + 1] += 26;
-                }
-            }
-
-            a1[i] = (int)a1[i] / 2;
-        }
-        String result = "";
-        for (int i = 1; i <= N; i++) {
-            result+=((char)(a1[i] + 97));
-        }
-        return result;
     }
 
-    static Object getMiddle(Object o1, Object o2, String type){
+    static Object getMiddle(Object o1, Object o2, String type) {
         switch (type) {
             case "java.lang.String":
-                return Octree.getMiddleString((String)o1,(String) o2);
+                return Octree.getMiddleString((String) o1, (String) o2);
             case "java.lang.Integer":
-                return (((Integer) o2)+ ((Integer) o1)) /2;
+                return (((Integer) o2) + ((Integer) o1)) / 2;
             case "java.lang.Double":
-                return (((Double) o2)+ ((Double) o1)) /2;
+                return (((Double) o2) + ((Double) o1)) / 2;
             case "java.util.Date":
                 Date d1 = (Date) o1;
                 Date d2 = (Date) o2;
-                int monthDiff = (d2.getMonth() - d1.getMonth())/2;
-                int hourDiff = (d2.getHours() - d1.getHours())/2;
-                int yearDiff = (d2.getYear() - d1.getYear())/2;
-                Calendar c = Calendar.getInstance();
-                c.setTime(d1);
-                c.add(Calendar.MONTH,monthDiff);
-                c.add(Calendar.HOUR,hourDiff);
-                c.add(Calendar.YEAR,yearDiff);
-                return c.getTime();
+                long t1 = d1.getTime();
+                long t2 = d2.getTime();
+                return new Date((t1 + t2) / 2);
             default:
                 return 0;
         }
     }
 
-    public static void printOctree(Octree tree){
-        Octree.printOctreeHelper(tree.root);
+    public void printOctree() {
+        printNode(root, "");
     }
-    private static void printOctreeHelper(OctreeNode node){
-        if(node.isLeaf){
-            System.out.println("[("+node.minX+ ","+ node.minY+","+ node.minZ+") ("+node.maxX+","+node.maxY+","+node.maxZ+")]");
-            for (int i=0;i<node.content.size();i++){
-                System.out.print(node.content.get(i));
+
+    private void printNode(OctreeNode node, String indent) {
+        if (node == null) {
+            System.out.println(indent + "null");
+            return;
+        }
+
+        System.out.println(indent + "Node");
+        System.out.println(indent + "Min X: " + node.minX + " Type X: " + node.typeX);
+        System.out.println(indent + "Max X: " + node.maxX + " Type X: " + node.typeX);
+        System.out.println(indent + "Min Y: " + node.minY + " Type Y: " + node.typeY);
+        System.out.println(indent + "Max Y: " + node.maxY + " Type Y: " + node.typeY);
+        System.out.println(indent + "Min Z: " + node.minZ + " Type Z: " + node.typeZ);
+        System.out.println(indent + "Max Z: " + node.maxZ + " Type Z: " + node.typeZ);
+
+        if (node.isLeaf) {
+            System.out.println(indent + "Content: ");
+            for (int i = 0; i < node.content.size(); i++) {
+                System.out.println(node.content.get(i));
             }
-        }else{
-            System.out.println("[("+node.minX+ ","+ node.minY+","+ node.minZ+") ("+node.maxX+","+node.maxY+","+node.maxZ+")]");
+        } else {
+            for (OctreeNode child : node.children) {
+                printNode(child, indent + "  ");
+            }
         }
     }
+
+    public ArrayList<OctreeNode> getAllNodes() {
+        ArrayList<OctreeNode> nodes = new ArrayList<>();
+        collectNodes(this.root, nodes);
+        return nodes;
+    }
+
+    private void collectNodes(OctreeNode node, ArrayList<OctreeNode> nodes) {
+        if (node == null) {
+            return;
+        }
+
+        nodes.add(node);
+
+        if (!node.isLeaf) {
+            for (OctreeNode child : node.children) {
+                collectNodes(child, nodes);
+            }
+        }
+    }
+
 
 }

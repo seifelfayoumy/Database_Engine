@@ -38,6 +38,7 @@ public class OctreeNode implements Serializable {
     }
 
     public void insert( IndexReference value){
+        System.out.println("test");
         if(this.content.size() < this.maxData){
             this.content.add(value);
         }
@@ -47,49 +48,53 @@ public class OctreeNode implements Serializable {
     }
 
     public boolean correctPosition(Object x, Object y, Object z){
-        Boolean correctX = Octree.compareKey(x,this.minX,this.typeX) >= 0 && Octree.compareKey(x,this.maxX,this.typeX) < 0;
-        Boolean correctY = Octree.compareKey(y,this.minY,this.typeY) >= 0 && Octree.compareKey(y,this.maxY,this.typeY) < 0;
-        Boolean correctZ = Octree.compareKey(z,this.minZ,this.typeZ) >= 0 && Octree.compareKey(z,this.maxZ,this.typeZ) < 0;
+        Boolean correctX = Octree.compareKey(x, this.minX, this.typeX) >= 0 && Octree.compareKey(x, this.maxX, this.typeX) <= 0;
+        Boolean correctY = Octree.compareKey(y, this.minY, this.typeY) >= 0 && Octree.compareKey(y, this.maxY, this.typeY) <= 0;
+        Boolean correctZ = Octree.compareKey(z, this.minZ, this.typeZ) >= 0 && Octree.compareKey(z, this.maxZ, this.typeZ) <= 0;
 
         return correctX && correctY && correctZ;
     }
 
-    public void createChildren(){
+
+    public void createChildren() {
         ArrayList<Object> divisionsX = OctreeNode.getDivisions(minX, maxX, typeX);
         ArrayList<Object> divisionsY = OctreeNode.getDivisions(minY, maxY, typeY);
         ArrayList<Object> divisionsZ = OctreeNode.getDivisions(minZ, maxZ, typeZ);
 
-        for(int i =0;i<8;i++){
-            OctreeNode n = new OctreeNode(divisionsX.get(i), divisionsX.get(i+1),typeX,divisionsY.get(i), divisionsY.get(i+1),typeY,divisionsZ.get(i), divisionsZ.get(i+1),typeZ,maxData);
-            this.children.add(n);
+        this.children = new ArrayList<OctreeNode>();
+        for (int dx = 0; dx < 2; dx++) {
+            for (int dy = 0; dy < 2; dy++) {
+                for (int dz = 0; dz < 2; dz++) {
+                    OctreeNode n = new OctreeNode(
+                            divisionsX.get(dx), divisionsX.get(dx + 1), typeX,
+                            divisionsY.get(dy), divisionsY.get(dy + 1), typeY,
+                            divisionsZ.get(dz), divisionsZ.get(dz + 1), typeZ,
+                            maxData
+                    );
+                    this.children.add(n);
+                }
+            }
         }
         this.isLeaf = false;
     }
 
     static ArrayList<Object> getDivisions(Object min, Object max, String type){
         ArrayList<Object> result = new ArrayList<Object>();
-        Object middle4 = Octree.getMiddle(min, max,type);
-        Object middle2 = Octree.getMiddle(min, middle4,type);
-        Object middle6 = Octree.getMiddle(middle4, max,type);
-        Object middle1 = Octree.getMiddle(min, middle2,type);
-        Object middle3 = Octree.getMiddle(middle2, middle4,type);
-        Object middle5 = Octree.getMiddle(middle4, middle6,type);
-        Object middle7 = Octree.getMiddle(middle6, max,type);
+
+        Object middle = Octree.getMiddle(min, max, type);
 
         result.add(min);
-        result.add(middle1);
-        result.add(middle2);
-        result.add(middle3);
-        result.add(middle4);
-        result.add(middle5);
-        result.add(middle6);
-        result.add(middle7);
+        result.add(middle);
         result.add(max);
 
-        return  result;
-
-    //    min - m1 -m2 -m3 -m4 -m5 -m6 -m7 -max
+        return result;
     }
+
+
+
+
+
+
 
 
 

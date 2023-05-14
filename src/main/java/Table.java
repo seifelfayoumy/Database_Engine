@@ -42,124 +42,125 @@ public class Table implements Serializable {
         FileInputStream fis = new FileInputStream("src/resources/DBApp.config");
         prop.load(fis);
 
-        Octree tree = new Octree(Table.getMinForColumn(this.csvAddress,this.name,columns[0]),
-                Table.getMaxForColumn(this.csvAddress,this.name,columns[0]),
-                Table.getTypeForColumn(this.csvAddress,this.name,columns[0]),
-                Table.getMinForColumn(this.csvAddress,this.name,columns[1]),
-                Table.getMaxForColumn(this.csvAddress,this.name,columns[1]),
-                Table.getTypeForColumn(this.csvAddress,this.name,columns[1]),
-                Table.getMinForColumn(this.csvAddress,this.name,columns[2]),
-                Table.getMaxForColumn(this.csvAddress,this.name,columns[2]),
-                Table.getTypeForColumn(this.csvAddress,this.name,columns[2]),
+        Octree tree = new Octree(Table.getMinForColumn(this.csvAddress, this.name, columns[0]),
+                Table.getMaxForColumn(this.csvAddress, this.name, columns[0]),
+                Table.getTypeForColumn(this.csvAddress, this.name, columns[0]),
+                Table.getMinForColumn(this.csvAddress, this.name, columns[1]),
+                Table.getMaxForColumn(this.csvAddress, this.name, columns[1]),
+                Table.getTypeForColumn(this.csvAddress, this.name, columns[1]),
+                Table.getMinForColumn(this.csvAddress, this.name, columns[2]),
+                Table.getMaxForColumn(this.csvAddress, this.name, columns[2]),
+                Table.getTypeForColumn(this.csvAddress, this.name, columns[2]),
                 this.name,
                 columns,
                 Integer.parseInt(prop.getProperty("MaximumEntriesinOctreeNode"))
-                );
-        String address = "src/resources/"+ this.name+"_"+ (this.indexes.size()+1)+ "_index.ser";
-        this.indexes.add(new OctreeReference(columns,address));
+        );
+        String address = "src/resources/" + this.name + "_" + (this.indexes.size() + 1) + "_index.ser";
+        this.indexes.add(new OctreeReference(columns, address));
+
+        for (PageInfo pageInfo : this.pages) {
+            // Load page from disk
+            Vector<Hashtable<String, Object>> pageContent = Page.readPage(pageInfo.address);
+
+            for (Hashtable<String, Object> tuple : pageContent) {
+                // Create an IndexReference
+                Object x = tuple.get(columns[0]);
+                Object y = tuple.get(columns[1]);
+                Object z = tuple.get(columns[2]);
+                IndexReference indexReference = new IndexReference(x, y, z, pageInfo.address);
+
+                // Insert it into the Octree
+                tree.insert(indexReference);
+            }
+        }
+
         tree.save(address);
         this.save();
     }
 
     public void insert(Hashtable<String, Object> tuple) throws Exception {
         String address = null;
-            if (this.pages.size() == 0) {
-                String pageAddress = "src/resources/" + this.name + "_1.ser";
-                address = pageAddress;
-                PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
-                this.pages.add(newPage);
-                Page.createPage(pageAddress);
-                this.pages.set(0, Page.insertToFirstPage(this.pages.get(0), tuple, this.clusteringKey));
-            } else {
-                int pagesSize = this.pages.size();
-                for (int i = 0; i < pagesSize; i++) {
-                    if (i == pagesSize - 1) {
-                        if (this.pages.get(i).isFull) {
-                            if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) > 0) {
-                                String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
-                                PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
-                                this.pages.add(newPage);
-                                Page.createPage(pageAddress);
-                                this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), tuple, this.clusteringKey));
-                                break;
-                            } else {
-                                Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
-                                this.pages.set(i, Page.removeLastTuple(this.pages.get(i), this.clusteringKey));
-                                this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
-                                String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
-                                PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
-                                this.pages.add(newPage);
-                                Page.createPage(pageAddress);
-                                this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), lastTuple, this.clusteringKey));
-                                break;
-                            }
-
+        if (this.pages.size() == 0) {
+            String pageAddress = "src/resources/" + this.name + "_1.ser";
+            address = pageAddress;
+            PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
+            this.pages.add(newPage);
+            Page.createPage(pageAddress);
+            this.pages.set(0, Page.insertToFirstPage(this.pages.get(0), tuple, this.clusteringKey));
+        } else {
+            int pagesSize = this.pages.size();
+            for (int i = 0; i < pagesSize; i++) {
+                if (i == pagesSize - 1) {
+                    if (this.pages.get(i).isFull) {
+                        if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) > 0) {
+                            String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
+                            address = pageAddress;
+                            PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
+                            this.pages.add(newPage);
+                            Page.createPage(pageAddress);
+                            this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), tuple, this.clusteringKey));
+                            break;
                         } else {
+                            Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
+                            this.pages.set(i, Page.removeLastTuple(this.pages.get(i), this.clusteringKey));
                             this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                            address = this.pages.get(i).address;
+                            String pageAddress = "src/resources/" + this.name + "_" + (this.pages.size() + 1) + ".ser";
+                            PageInfo newPage = new PageInfo(this.maxRows, pageAddress);
+                            this.pages.add(newPage);
+                            Page.createPage(pageAddress);
+                            this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), lastTuple, this.clusteringKey));
                             break;
                         }
 
                     } else {
-                        if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i + 1).minValue) < 0) {
-                            if (this.pages.get(i).isFull) {
-                                if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) > 0) {
-                                    if (this.pages.get(i + 1).isFull) {
-                                        Table.shiftDown(this, i + 1);
-                                    }
-                                    this.pages.set(i + 1, Page.insertToPage(this.pages.get(i + 1), tuple, this.clusteringKey, this.name, this.csvAddress));
-                                    break;
-                                } else if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) < 0) {
-                                    Table.shiftDown(this, i);
-                                    this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
-                                    break;
-                                } else {
-                                    throw new DuplicateRowException("Duplicate clustering key");
+                        this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                        address = this.pages.get(i).address;
+                        break;
+                    }
+
+                } else {
+                    if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i + 1).minValue) < 0) {
+                        if (this.pages.get(i).isFull) {
+                            if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) > 0) {
+                                if (this.pages.get(i + 1).isFull) {
+                                    Table.shiftDown(this, i + 1);
                                 }
-                            } else {
-                                this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                                this.pages.set(i + 1, Page.insertToPage(this.pages.get(i + 1), tuple, this.clusteringKey, this.name, this.csvAddress));
+                                address = this.pages.get(i + 1).address;
                                 break;
+                            } else if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) < 0) {
+                                Table.shiftDown(this, i);
+                                this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                                address = this.pages.get(i).address;
+                                break;
+                            } else {
+                                throw new DuplicateRowException("Duplicate clustering key");
                             }
+                        } else {
+                            this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
+                            address = this.pages.get(i).address;
+                            break;
                         }
                     }
                 }
             }
-            Boolean hasIndex = false;
-        int index = -1;
-        Object x = null;
-        Object y = null;
-        Object z = null;
-        for(int i =0;i<this.indexes.size();i++){
-            hasIndex = false;
-            List<String> columnsList = Arrays.asList(this.indexes.get(i).columns);
+        }
+        for (int i = 0; i < this.indexes.size(); i++) {
+            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                Octree octree = Octree.read(this.indexes.get(i).address);
+                // Create an IndexReference
+                Object x = tuple.get(octree.columns[0]);
+                Object y = tuple.get(octree.columns[1]);
+                Object z = tuple.get(octree.columns[2]);
+                IndexReference indexReference = new IndexReference(x, y, z, address);
+                // Insert it to the Octree
+                octree.insert(indexReference);
+                octree.save(this.indexes.get(i).address);
+            }
 
-            Enumeration<String> keys = tuple.keys();
-            while (keys.hasMoreElements()) {
-                String currColumnName = keys.nextElement();
-                if(columnsList.contains(currColumnName)){
-                    hasIndex = true;
-                    if(columnsList.get(0).equals(currColumnName)){
-                        x = tuple.get(currColumnName);
-                    }
-                    if(columnsList.get(1).equals(currColumnName)){
-                        y = tuple.get(currColumnName);
-                    }
-                    if(columnsList.get(2).equals(currColumnName)){
-                        z = tuple.get(currColumnName);
-                    }
-                }else{
-                    break;
-                }
-            }
-            if(hasIndex){
-                index = i;
-                break;
-            }
         }
 
-        if(hasIndex && index > 0) {
-            Octree tree = Octree.read(this.indexes.get(index).address);
-            tree.insert(new IndexReference(x,y,z,address));
-        }
         this.isEmpty = false;
         this.save();
     }
@@ -296,13 +297,13 @@ public class Table implements Serializable {
         Object result = null;
         while ((nextRecord = csvReader.readNext()) != null) {
             if (nextRecord[0].equals(tableName) && nextRecord[1].equals(columnName)) {
-                if (nextRecord[2].equals("java.lang.String")){
+                if (nextRecord[2].equals("java.lang.String")) {
                     result = nextRecord[6];
-                }else if(nextRecord[2].equals("java.lang.Double")){
+                } else if (nextRecord[2].equals("java.lang.Double")) {
                     result = Double.parseDouble(nextRecord[6]);
-                }else if(nextRecord[2].equals("java.lang.Integer")){
+                } else if (nextRecord[2].equals("java.lang.Integer")) {
                     result = Integer.parseInt(nextRecord[6]);
-                }else if(nextRecord[2].equals("java.util.Date")){
+                } else if (nextRecord[2].equals("java.util.Date")) {
                     result = new Date(nextRecord[6]);
                 }
 
@@ -310,6 +311,7 @@ public class Table implements Serializable {
         }
         return result;
     }
+
     public static String getTypeForColumn(String csvAddress, String tableName, String columnName) throws IOException, CsvValidationException {
         FileReader filereader = new FileReader(csvAddress);
         CSVReader csvReader = new CSVReader(filereader);
@@ -322,6 +324,7 @@ public class Table implements Serializable {
         }
         return result;
     }
+
     public static Object getMaxForColumn(String csvAddress, String tableName, String columnName) throws IOException, CsvValidationException {
         FileReader filereader = new FileReader(csvAddress);
         CSVReader csvReader = new CSVReader(filereader);
@@ -329,13 +332,13 @@ public class Table implements Serializable {
         Object result = null;
         while ((nextRecord = csvReader.readNext()) != null) {
             if (nextRecord[0].equals(tableName) && nextRecord[1].equals(columnName)) {
-                if (nextRecord[2].equals("java.lang.String")){
+                if (nextRecord[2].equals("java.lang.String")) {
                     result = nextRecord[7];
-                }else if(nextRecord[2].equals("java.lang.Double")){
+                } else if (nextRecord[2].equals("java.lang.Double")) {
                     result = Double.parseDouble(nextRecord[7]);
-                }else if(nextRecord[2].equals("java.lang.Integer")){
+                } else if (nextRecord[2].equals("java.lang.Integer")) {
                     result = Integer.parseInt(nextRecord[7]);
-                }else if(nextRecord[2].equals("java.util.Date")){
+                } else if (nextRecord[2].equals("java.util.Date")) {
                     result = new Date(nextRecord[7]);
                 }
 
@@ -658,6 +661,7 @@ public class Table implements Serializable {
             System.out.println();
         }
     }
+
     public static void printAllIndexes(String tableName) throws Exception {
         FileInputStream fileIn = new FileInputStream("src/resources/" + tableName + "_table.ser");
         ObjectInputStream in = new ObjectInputStream(fileIn);
@@ -666,9 +670,9 @@ public class Table implements Serializable {
         fileIn.close();
 
         for (int i = 0; i < table.indexes.size(); i++) {
-            System.out.println(i+1);
+            System.out.println(i + 1);
             Octree tree = Octree.read(table.indexes.get(i).address);
-            Octree.printOctree(tree);
+            tree.printOctree();
         }
     }
 
