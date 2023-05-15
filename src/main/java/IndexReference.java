@@ -14,6 +14,6 @@ public class IndexReference implements Serializable {
     }
 
     public String toString(){
-        return "(x: "+ this.x +", y: " +this.y +", z: "+ this.z+")";
+        return "(x: "+ this.x +", y: " +this.y +", z: "+ this.z+") at address: "+this.pageAddress;
     }
 }

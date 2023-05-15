@@ -11,7 +11,7 @@ public class Main {
 
         try {
             DBApp dbApp = new DBApp();
-////
+////////
 //            Hashtable htblColNameType = new Hashtable( );
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
@@ -27,40 +27,46 @@ public class Main {
 //            htblColNameMax.put("name", "zzzzzzzzzzzz");
 //            htblColNameMax.put("gpa", "10000");
 //
-//            String strTableName = "user";
 //
+//            String strTableName = "user";
+////
 //            dbApp.createTable( strTableName,"id",htblColNameType,htblColNameMin,htblColNameMax);
 //
-//            dbApp.createIndex("user", new String[]{"id", "name", "gpa"});
-//
+//          dbApp.createIndex("user", new String[]{"id", "name", "gpa"});
 
 //
 
 
+
+
+//                            Hashtable htblColNameValue = new Hashtable<String, Object>();
+//                            htblColNameValue.put("id", new Integer(5));
+//                            htblColNameValue.put("gpa", new Double(11));
+//                            htblColNameValue.put("name", new String("Ahmed" ) );
+////            Hashtable htblColNameValue = new Hashtable<String, Object>();
+////            htblColNameValue.put("id", new Integer(3));
+////            htblColNameValue.put("gpa", new Integer(11));
+////            htblColNameValue.put("name", new Integer(20 ) );
 //
-                            Hashtable htblColNameValue = new Hashtable<String, Object>();
-                            htblColNameValue.put("id", new Integer(3));
-                            htblColNameValue.put("gpa", new Double(11));
-                            htblColNameValue.put("name", new String("Ahmed" ) );
-
-                            dbApp.insertIntoTable("user", htblColNameValue);
+//                            dbApp.insertIntoTable("user", htblColNameValue);
 
 
-            Table.printAllIndexes("user");
 
+       //     Table.printAllIndexes("user");
+//
 //                            Hashtable htblColNameValue = new Hashtable<String, Object>();
 ////                            htblColNameValue.put("gpa", new Double(0.988));
 //                            htblColNameValue.put("name", new String("Ahmed123" ) );
 //                //            htblColNameValue.put("id", new Integer(1 ) );
 //
-//                            dbApp.updateTable("user","50", htblColNameValue);
+//                            dbApp.updateTable("user","1", htblColNameValue);
 
                 //
-                //
+//                //
 //                            Hashtable htblColNameValue = new Hashtable<String,Object>();
-//                            htblColNameValue.put("id", new Integer( 50 ));
-////                            htblColNameValue.put("gpa", new Double( 11 ));
-//                //            htblColNameValue.put("name", new String( "Ahmed1" ));
+//                            htblColNameValue.put("id", new Integer( 6 ));
+//                            htblColNameValue.put("gpa", new Double( 11 ));
+//                            htblColNameValue.put("name", new String( "ahmed" ));
 //
 //                            dbApp.deleteFromTable("user",htblColNameValue);
 
@@ -73,7 +79,8 @@ public class Main {
                 //            Table.printAllPagesClusterKey("user","id");
 //                Table.printAllPages("user");
 
-
+            Table.printAllPages("user");
+            Table.printAllIndexes("user");
 
 
 

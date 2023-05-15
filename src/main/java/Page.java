@@ -206,6 +206,11 @@ public abstract class Page implements Serializable {
         pageInfo.address = newAddress;
         return pageInfo;
     }
+    public static void renameFile(String  address, String newAddress) {
+        File oldFile = new File(address);
+        File newFile = new File(newAddress);
+        oldFile.renameTo(newFile);
+    }
 
 
 }

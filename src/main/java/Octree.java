@@ -6,15 +6,18 @@ public class Octree implements Serializable {
     String[] columns;
     ArrayList<OctreeNode> nodes;
     int maxPerNode;
+    String name;
 
     OctreeNode root;
 
-    public Octree(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY, Object minZ, Object maxZ, String typeZ, String tableName, String[] columns, int maxPerNode) {
+    public Octree(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY, Object minZ, Object maxZ, String typeZ, String tableName, String[] columns, int maxPerNode, String name) {
         this.nodes = new ArrayList<OctreeNode>();
         this.tableName = tableName;
         this.columns = columns;
         this.maxPerNode = maxPerNode;
+        this.name = name;
         this.root = new OctreeNode(minX, maxX, typeX, minY, maxY, typeY, minZ, maxZ, typeZ, maxPerNode);
+        this.root.lastNode = true;
     }
 
     public void save(String address) throws Exception {
@@ -72,14 +75,12 @@ public class Octree implements Serializable {
                         Octree.compareKey(z, ref.z, node.typeZ) == 0) {
                     iterator.remove();
                     node.isFull = false;
-                    break;
                 }
             }
         } else {
             for (OctreeNode child : node.children) {
                 if (child.correctPosition(x, y, z)) {
                     deleteHelper(x, y, z, child);
-                    break;
                 }
             }
             // After deletion, check if total content of all children is less than the maximum per node.
@@ -99,40 +100,42 @@ public class Octree implements Serializable {
     }
 
 
-    public void insert(IndexReference value){
+    public void insert(IndexReference value) {
         this.insertHelper(value, this.root);
     }
 
-    private void insertHelper(IndexReference value, OctreeNode node){
-        if(node.isLeaf){
-            if(!node.isFull){
-                node.insert(value);
-            }else{
-                node.createChildren();
-                ArrayList<IndexReference> oldContent = new ArrayList<IndexReference>(node.content);
+    private void insertHelper(IndexReference value, OctreeNode node) {
+        if (node.isLeaf) {
+            if (node.isFull) {
+                node.createChildren(); // Create child nodes
+                ArrayList<IndexReference> oldContent = new ArrayList<>(node.content);
+                oldContent.add(value);
                 node.content.clear();
                 node.isFull = false;
+                node.isLeaf = false;
 
-                for(int i=0;i<oldContent.size();i++){
-                    for(int j =0;j<8;j++){
-                        if(node.children.get(j).correctPosition(oldContent.get(i).x,oldContent.get(i).y,oldContent.get(i).z)){
-                            node.children.get(j).insert(oldContent.get(i));
-                            break;
-                        }
-                    }
+                for (IndexReference oldValue : oldContent) {
+                    insertHelper(oldValue, node);
                 }
-                this.insertHelper(value, node);
+            } else {
+                node.insert(value);
             }
-        }else{
-            for(int i=0;i<8;i++){
+        } else {
+            for (int i = 0; i < 8; i++) {
                 OctreeNode currNode = node.children.get(i);
-                if(currNode.correctPosition(value.x, value.y, value.z)){
-                    this.insertHelper(value, currNode);
+                if (currNode.correctPosition(value.x, value.y, value.z)) {
+                    insertHelper(value, currNode);
                     break;
                 }
             }
         }
     }
+
+
+
+
+
+
 
 
 
@@ -154,29 +157,18 @@ public class Octree implements Serializable {
     }
 
     static String getMiddleString(String a, String b) {
-        // ensure a is lexicographically smaller than b
-        if (a.compareTo(b) > 0) {
-            String temp = a;
-            a = b;
-            b = temp;
-        }
-        char[] aArr = a.toCharArray();
-        char[] bArr = b.toCharArray();
-        char[] midArr = new char[Math.max(aArr.length, bArr.length)];
-        Arrays.fill(midArr, 'a');
+        int shorterLength = Math.min(a.length(), b.length());
+        char[] middleArr = new char[shorterLength];
 
-        for (int i = 0; i < Math.min(aArr.length, bArr.length); i++) {
-            int avg = (aArr[i] + bArr[i]) / 2;
-            midArr[i] = (char) avg;
-            if(aArr[i] < avg && avg < bArr[i]) break;
+        for (int i = 0; i < shorterLength; i++) {
+            int total = a.charAt(i) + b.charAt(i);
+            if (total > 255) {
+                total -= 256;
+            }
+            middleArr[i] = (char) total;
         }
 
-        String middle = new String(midArr);
-        if (a.compareTo(middle) < 0 && middle.compareTo(b) < 0) {
-            return middle;
-        } else {
-            return null;
-        }
+        return new String(middleArr);
     }
 
     static Object getMiddle(Object o1, Object o2, String type) {
@@ -188,11 +180,22 @@ public class Octree implements Serializable {
             case "java.lang.Double":
                 return (((Double) o2) + ((Double) o1)) / 2;
             case "java.util.Date":
-                Date d1 = (Date) o1;
-                Date d2 = (Date) o2;
-                long t1 = d1.getTime();
-                long t2 = d2.getTime();
-                return new Date((t1 + t2) / 2);
+                Date a = (Date) o1;
+                Date b = (Date) o2;
+                if (a.after(b)) {
+                    Date temp = a;
+                    a = b;
+                    b = temp;
+                }
+
+                // Get the difference between the two dates.
+                long difference = b.getTime() - a.getTime();
+
+                // Calculate the midpoint.
+                long midpoint = difference / 2;
+
+                // Create a new Date object from the midpoint.
+                return new Date(a.getTime() + midpoint);
             default:
                 return 0;
         }
@@ -215,6 +218,7 @@ public class Octree implements Serializable {
         System.out.println(indent + "Max Y: " + node.maxY + " Type Y: " + node.typeY);
         System.out.println(indent + "Min Z: " + node.minZ + " Type Z: " + node.typeZ);
         System.out.println(indent + "Max Z: " + node.maxZ + " Type Z: " + node.typeZ);
+        System.out.println(indent + "last? "+node.lastNode);
 
         if (node.isLeaf) {
             System.out.println(indent + "Content: ");

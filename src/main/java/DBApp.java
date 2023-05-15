@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.Iterator;
 
 public class DBApp {
     public ArrayList<Table> tables;
@@ -88,6 +89,14 @@ public class DBApp {
             throws DBAppException {
 
         Table.validateTupleOnUpdate("src/resources/metadata.csv", strTableName, htblColNameValue);
+        Enumeration<String> keys = htblColNameValue.keys();
+        while (keys.hasMoreElements()) {
+            String currColumnName = keys.nextElement();
+            if(htblColNameValue.get(currColumnName) instanceof String){
+                String newValue = htblColNameValue.get(currColumnName).toString().toLowerCase();
+                htblColNameValue.replace(currColumnName, newValue);
+            }
+        }
         for (int i = 0; i < this.tables.size(); i++) {
             if (this.tables.get(i).name.equals(strTableName)) {
                 try {
@@ -124,6 +133,10 @@ public class DBApp {
             if (!tableExists) {
                 throw new DBAppException("table does not exist");
             }
+            ArrayList indexedCols = Table.getAllIndexedColumns(strTableName);
+            if(indexedCols.contains(strarrColName[0]) || indexedCols.contains(strarrColName[1]) || indexedCols.contains(strarrColName[2]) ){
+                throw new DBAppException("index already exists on one or more of the columns");
+            }
         } catch (Exception e) {
             throw new DBAppException(e.getMessage());
         }
@@ -141,4 +154,14 @@ public class DBApp {
 
 
     }
+
+//    public Iterator selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators)
+//            throws DBAppException{
+//
+//    }
+//
+//    //BONUS
+//    public Iterator parseSQL( StringBuffer strbufSQL ) throws DBAppException{
+//
+//    }
 }

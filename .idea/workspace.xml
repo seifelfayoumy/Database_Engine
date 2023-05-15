@@ -5,17 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="48cc59ec-fb8a-49a7-a34f-4343ac540798" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/SQLTerm.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/DBApp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/DBApp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/IndexReference.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/IndexReference.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Octree.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Octree.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/OctreeNode.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/OctreeNode.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/OctreeReference.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/OctreeReference.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/Page.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Page.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/Table.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/Table.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/metadata.csv" beforeDir="false" afterPath="$PROJECT_DIR$/src/resources/metadata.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/user_1.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/user_1_index.ser" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/resources/user_2.ser" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/resources/user_table.ser" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/DBApp.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/DBApp.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/IndexReference.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/IndexReference.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Main.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Octree.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Octree.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/OctreeNode.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/OctreeNode.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/OctreeReference.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/OctreeReference.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/Page.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Page.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/Table.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/Table.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -78,7 +89,7 @@
       <workItem from="1683896179720" duration="7665000" />
       <workItem from="1683982750687" duration="182000" />
       <workItem from="1683982950303" duration="78000" />
-      <workItem from="1683983033834" duration="41510000" />
+      <workItem from="1683983033834" duration="60632000" />
     </task>
     <servers />
   </component>

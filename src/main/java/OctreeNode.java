@@ -19,6 +19,7 @@ public class OctreeNode implements Serializable {
     Boolean isFull;
     ArrayList<IndexReference> content;
     int maxData;
+    Boolean lastNode;
 
 
     public OctreeNode(Object minX, Object maxX, String typeX, Object minY, Object maxY, String typeY,Object minZ, Object maxZ, String typeZ, int maxData){
@@ -35,10 +36,10 @@ public class OctreeNode implements Serializable {
         this.isFull = false;
         this.content = new ArrayList<IndexReference>();
         this.maxData = maxData;
+        lastNode = false;
     }
 
     public void insert( IndexReference value){
-        System.out.println("test");
         if(this.content.size() < this.maxData){
             this.content.add(value);
         }
@@ -48,11 +49,17 @@ public class OctreeNode implements Serializable {
     }
 
     public boolean correctPosition(Object x, Object y, Object z){
-        Boolean correctX = Octree.compareKey(x, this.minX, this.typeX) >= 0 && Octree.compareKey(x, this.maxX, this.typeX) <= 0;
-        Boolean correctY = Octree.compareKey(y, this.minY, this.typeY) >= 0 && Octree.compareKey(y, this.maxY, this.typeY) <= 0;
-        Boolean correctZ = Octree.compareKey(z, this.minZ, this.typeZ) >= 0 && Octree.compareKey(z, this.maxZ, this.typeZ) <= 0;
-
-        return correctX && correctY && correctZ;
+        if(this.lastNode){
+            Boolean correctX = Octree.compareKey(x, this.minX, this.typeX) >= 0 && Octree.compareKey(x, this.maxX, this.typeX) <= 0;
+            Boolean correctY = Octree.compareKey(y, this.minY, this.typeY) >= 0 && Octree.compareKey(y, this.maxY, this.typeY) <= 0;
+            Boolean correctZ = Octree.compareKey(z, this.minZ, this.typeZ) >= 0 && Octree.compareKey(z, this.maxZ, this.typeZ) <= 0;
+            return correctX && correctY && correctZ;
+        }else{
+            Boolean correctX = Octree.compareKey(x, this.minX, this.typeX) >= 0 && Octree.compareKey(x, this.maxX, this.typeX) < 0;
+            Boolean correctY = Octree.compareKey(y, this.minY, this.typeY) >= 0 && Octree.compareKey(y, this.maxY, this.typeY) < 0;
+            Boolean correctZ = Octree.compareKey(z, this.minZ, this.typeZ) >= 0 && Octree.compareKey(z, this.maxZ, this.typeZ) < 0;
+            return correctX && correctY && correctZ;
+        }
     }
 
 
@@ -71,12 +78,17 @@ public class OctreeNode implements Serializable {
                             divisionsZ.get(dz), divisionsZ.get(dz + 1), typeZ,
                             maxData
                     );
+                    if(dx == 1 && dy == 1 && dz == 1){
+                        n.lastNode = true;
+                    }
                     this.children.add(n);
                 }
             }
         }
         this.isLeaf = false;
     }
+
+
 
     static ArrayList<Object> getDivisions(Object min, Object max, String type){
         ArrayList<Object> result = new ArrayList<Object>();

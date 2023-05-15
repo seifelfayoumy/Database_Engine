@@ -37,10 +37,11 @@ public class Table implements Serializable {
         this.save();
     }
 
-    public void addIndex(String[] columns) throws Exception {
+    public void addIndex(String[] columns, int index) throws Exception {
         Properties prop = new Properties();
         FileInputStream fis = new FileInputStream("src/resources/DBApp.config");
         prop.load(fis);
+        this.addIndexToCsv(columns,columns[0]+columns[1]+columns[2]+"Index");
 
         Octree tree = new Octree(Table.getMinForColumn(this.csvAddress, this.name, columns[0]),
                 Table.getMaxForColumn(this.csvAddress, this.name, columns[0]),
@@ -53,10 +54,54 @@ public class Table implements Serializable {
                 Table.getTypeForColumn(this.csvAddress, this.name, columns[2]),
                 this.name,
                 columns,
-                Integer.parseInt(prop.getProperty("MaximumEntriesinOctreeNode"))
+                Integer.parseInt(prop.getProperty("MaximumEntriesinOctreeNode")),
+                columns[0]+columns[1]+columns[2]+"Index"
+        );
+        String address = "src/resources/" + this.name + "_" + (index + 1) + "_index.ser";
+        this.indexes.add(new OctreeReference(columns, address, columns[0]+columns[1]+columns[2]+"Index"));
+
+        for (PageInfo pageInfo : this.pages) {
+            // Load page from disk
+            Vector<Hashtable<String, Object>> pageContent = Page.readPage(pageInfo.address);
+
+            for (Hashtable<String, Object> tuple : pageContent) {
+                // Create an IndexReference
+                Object x = tuple.get(columns[0]);
+                Object y = tuple.get(columns[1]);
+                Object z = tuple.get(columns[2]);
+                IndexReference indexReference = new IndexReference(x, y, z, pageInfo.address);
+
+                // Insert it into the Octree
+                tree.insert(indexReference);
+            }
+        }
+
+        tree.save(address);
+        this.save();
+    }
+
+    public void addIndex(String[] columns) throws Exception {
+        Properties prop = new Properties();
+        FileInputStream fis = new FileInputStream("src/resources/DBApp.config");
+        prop.load(fis);
+        this.addIndexToCsv(columns,columns[0]+columns[1]+columns[2]+"Index");
+
+        Octree tree = new Octree(Table.getMinForColumn(this.csvAddress, this.name, columns[0]),
+                Table.getMaxForColumn(this.csvAddress, this.name, columns[0]),
+                Table.getTypeForColumn(this.csvAddress, this.name, columns[0]),
+                Table.getMinForColumn(this.csvAddress, this.name, columns[1]),
+                Table.getMaxForColumn(this.csvAddress, this.name, columns[1]),
+                Table.getTypeForColumn(this.csvAddress, this.name, columns[1]),
+                Table.getMinForColumn(this.csvAddress, this.name, columns[2]),
+                Table.getMaxForColumn(this.csvAddress, this.name, columns[2]),
+                Table.getTypeForColumn(this.csvAddress, this.name, columns[2]),
+                this.name,
+                columns,
+                Integer.parseInt(prop.getProperty("MaximumEntriesinOctreeNode")),
+                columns[0]+columns[1]+columns[2]+"Index"
         );
         String address = "src/resources/" + this.name + "_" + (this.indexes.size() + 1) + "_index.ser";
-        this.indexes.add(new OctreeReference(columns, address));
+        this.indexes.add(new OctreeReference(columns, address, columns[0]+columns[1]+columns[2]+"Index"));
 
         for (PageInfo pageInfo : this.pages) {
             // Load page from disk
@@ -80,6 +125,7 @@ public class Table implements Serializable {
 
     public void insert(Hashtable<String, Object> tuple) throws Exception {
         String address = null;
+        Boolean reset = false;
         if (this.pages.size() == 0) {
             String pageAddress = "src/resources/" + this.name + "_1.ser";
             address = pageAddress;
@@ -99,6 +145,7 @@ public class Table implements Serializable {
                             this.pages.add(newPage);
                             Page.createPage(pageAddress);
                             this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), tuple, this.clusteringKey));
+                            reset = true;
                             break;
                         } else {
                             Hashtable<String, Object> lastTuple = Page.getLastTuple(this.pages.get(i));
@@ -110,6 +157,7 @@ public class Table implements Serializable {
                             this.pages.add(newPage);
                             Page.createPage(pageAddress);
                             this.pages.set(i + 1, Page.insertToFirstPage(this.pages.get(i + 1), lastTuple, this.clusteringKey));
+                            reset = true;
                             break;
                         }
 
@@ -125,12 +173,14 @@ public class Table implements Serializable {
                             if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) > 0) {
                                 if (this.pages.get(i + 1).isFull) {
                                     Table.shiftDown(this, i + 1);
+                                    reset = true;
                                 }
                                 this.pages.set(i + 1, Page.insertToPage(this.pages.get(i + 1), tuple, this.clusteringKey, this.name, this.csvAddress));
                                 address = this.pages.get(i + 1).address;
                                 break;
                             } else if (Table.compareClusterKey(this.csvAddress, this.name, tuple.get(this.clusteringKey), this.pages.get(i).maxValue) < 0) {
                                 Table.shiftDown(this, i);
+                                reset = true;
                                 this.pages.set(i, Page.insertToPage(this.pages.get(i), tuple, this.clusteringKey, this.name, this.csvAddress));
                                 address = this.pages.get(i).address;
                                 break;
@@ -146,19 +196,38 @@ public class Table implements Serializable {
                 }
             }
         }
-        for (int i = 0; i < this.indexes.size(); i++) {
-            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
-                Octree octree = Octree.read(this.indexes.get(i).address);
-                // Create an IndexReference
-                Object x = tuple.get(octree.columns[0]);
-                Object y = tuple.get(octree.columns[1]);
-                Object z = tuple.get(octree.columns[2]);
-                IndexReference indexReference = new IndexReference(x, y, z, address);
-                // Insert it to the Octree
-                octree.insert(indexReference);
-                octree.save(this.indexes.get(i).address);
-            }
 
+
+        if(reset){
+            for (int i = 0; i < this.indexes.size(); i++) {
+                if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                    Octree octree = Octree.read(this.indexes.get(i).address);
+                    String[] columns = octree.columns;
+
+                    Page.deletePage(this.indexes.get(i).address);
+                    this.indexes.remove(i);
+                    this.addIndex(columns,i);
+                    break;
+                }
+
+            }
+        }else{
+            for (int i = 0; i < this.indexes.size(); i++) {
+                if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                    Octree octree = Octree.read(this.indexes.get(i).address);
+                    // Create an IndexReference
+                    Object x = tuple.get(octree.columns[0]);
+                    Object y = tuple.get(octree.columns[1]);
+                    Object z = tuple.get(octree.columns[2]);
+                    IndexReference indexReference = new IndexReference(x, y, z, address);
+                    // Insert it to the Octree
+
+                    octree.insert(indexReference);
+
+                    octree.save(this.indexes.get(i).address);
+                }
+
+            }
         }
 
         this.isEmpty = false;
@@ -184,32 +253,97 @@ public class Table implements Serializable {
             default:
                 clusterKeyValueObject = new NullObject();
         }
-        for (int i = 0; i < this.pages.size(); i++) {
-            if (i != this.pages.size() - 1) {
-                if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
-                        && Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i + 1).minValue) < 0) {
-                    Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+        Boolean hasIndex = false;
+        for (int i = 0; i < this.indexes.size(); i++) {
+            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                Octree octree = Octree.read(this.indexes.get(i).address);
+
+                Object x = tuple.get(octree.columns[0]);
+                Object y = tuple.get(octree.columns[1]);
+                Object z = tuple.get(octree.columns[2]);
+
+
+                IndexReference ref = octree.search(x,y,z);
+
+                String address = ref.pageAddress;
+                for (int j = 0; j < this.pages.size(); j++) {
+                    if (this.pages.get(j).address.equals(address)) {
+                            Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                            octree.delete(x,y,z);
+
+                            hasIndex = true;
+                    }
                 }
-            } else {
-                if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0) {
-                    Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+            }
+
+        }
+        if(!hasIndex){
+            for (int i = 0; i < this.pages.size(); i++) {
+                if (i != this.pages.size() - 1) {
+                    if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
+                            && Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i + 1).minValue) < 0) {
+                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                    }
+                } else {
+                    if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0) {
+                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                    }
                 }
             }
         }
         this.save();
+
     }
 
     public void delete(Hashtable<String, Object> tuple) throws Exception {
         ArrayList<PageInfo> deletedPages = new ArrayList<PageInfo>();
-        for (int i = 0; i < this.pages.size(); i++) {
-            PageInfo deletedFrom = Page.deleteFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey);
-            if (deletedFrom.noOfTuples == 0) {
-                Page.deletePage(deletedFrom.address);
-                deletedPages.add(deletedFrom);
-            } else {
-                this.pages.set(i, deletedFrom);
+        ArrayList<IndexReference> deletedTuples = new ArrayList<>();
+        String[] columns;
+        Boolean hasIndex = false;
+        for (int i = 0; i < this.indexes.size(); i++) {
+            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                Octree octree = Octree.read(this.indexes.get(i).address);
+                columns = octree.columns;
+
+                Object x = tuple.get(octree.columns[0]);
+                Object y = tuple.get(octree.columns[1]);
+                Object z = tuple.get(octree.columns[2]);
+                IndexReference ref = octree.search(x, y, z);
+
+                if(ref != null) {
+
+
+                    String address = ref.pageAddress;
+                    for (int j = 0; j < this.pages.size(); j++) {
+                        if (this.pages.get(j).address.equals(address)) {
+                            PageInfo deletedFrom = Page.deleteFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey);
+                            if (deletedFrom.noOfTuples == 0) {
+                                Page.deletePage(deletedFrom.address);
+                                deletedPages.add(deletedFrom);
+                            } else {
+                                this.pages.set(i, deletedFrom);
+                            }
+                            octree.delete(x, y, z);
+                            octree.save(this.indexes.get(i).address);
+                            hasIndex = true;
+                        }
+                    }
+                }
+            }
+
+        }
+        if(!hasIndex){
+            for (int i = 0; i < this.pages.size(); i++) {
+                PageInfo deletedFrom = Page.deleteFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey);
+                if (deletedFrom.noOfTuples == 0) {
+                    Page.deletePage(deletedFrom.address);
+                    deletedPages.add(deletedFrom);
+                } else {
+                    this.pages.set(i, deletedFrom);
+                }
             }
         }
+
         for (int i = 0; i < deletedPages.size(); i++) {
             this.pages.remove(deletedPages.get(i));
         }
@@ -264,6 +398,31 @@ public class Table implements Serializable {
         }
 
         return tables;
+    }
+    public void addIndexToCsv( String[] columns, String name) throws IOException, CsvValidationException {
+        String csvAddress = this.csvAddress;
+        Page.createPage("src/resources/temp.csv");
+        CSVWriter writer = new CSVWriter(new FileWriter("src/resources/temp.csv", true));
+
+
+        FileReader filereader = new FileReader(csvAddress);
+        CSVReader csvReader = new CSVReader(filereader);
+        String[] nextRecord;
+        while ((nextRecord = csvReader.readNext()) != null) {
+            String[] record = nextRecord;
+            if (nextRecord[0].equals(this.name) && Arrays.stream(columns).toList().contains(nextRecord[1])) {
+                nextRecord[4] = name;
+                nextRecord[5] = "Octree";
+
+            }
+            writer.writeNext(record, false);
+
+        }
+        writer.close();
+
+        Page.deletePage(this.csvAddress);
+        Page.renameFile("src/resources/temp.csv",this.csvAddress);
+
     }
 
     public static Table getTableFromDisk(String tableName) throws IOException, ClassNotFoundException {
@@ -730,6 +889,23 @@ public class Table implements Serializable {
         }
         table.save();
     }
+
+    public static ArrayList<String> getAllIndexedColumns(String tableName) throws IOException, ClassNotFoundException {
+        FileInputStream fileIn = new FileInputStream("src/resources/" + tableName + "_table.ser");
+        ObjectInputStream in = new ObjectInputStream(fileIn);
+        Table table = (Table) in.readObject();
+        in.close();
+        fileIn.close();
+        ArrayList<String> result = new ArrayList<>();
+
+        for(int i =0; i<table.indexes.size();i++){
+            result.add(table.indexes.get(i).columns[0]);
+            result.add(table.indexes.get(i).columns[1]);
+            result.add(table.indexes.get(i).columns[2]);
+        }
+        return result;
+    }
+
 
 
 }
