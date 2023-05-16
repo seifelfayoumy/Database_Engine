@@ -237,6 +237,20 @@ public class Octree implements Serializable {
         collectNodes(this.root, nodes);
         return nodes;
     }
+    public ArrayList<String> getAllNodesAddresses() {
+        ArrayList<OctreeNode> nodes = new ArrayList<>();
+        ArrayList<String> addresses = new ArrayList<>();
+        collectNodes(this.root, nodes);
+        for(int i=0;i<nodes.size();i++){
+            if(nodes.get(i).isLeaf){
+                for(int j=0;j<nodes.get(i).content.size();j++){
+                    addresses.add(nodes.get(i).content.get(j).pageAddress);
+                }
+
+            }
+        }
+        return addresses;
+    }
 
     private void collectNodes(OctreeNode node, ArrayList<OctreeNode> nodes) {
         if (node == null) {

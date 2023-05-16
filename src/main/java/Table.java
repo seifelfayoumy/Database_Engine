@@ -41,7 +41,7 @@ public class Table implements Serializable {
         Properties prop = new Properties();
         FileInputStream fis = new FileInputStream("src/resources/DBApp.config");
         prop.load(fis);
-        this.addIndexToCsv(columns,columns[0]+columns[1]+columns[2]+"Index");
+        this.addIndexToCsv(columns, columns[0] + columns[1] + columns[2] + "Index");
 
         Octree tree = new Octree(Table.getMinForColumn(this.csvAddress, this.name, columns[0]),
                 Table.getMaxForColumn(this.csvAddress, this.name, columns[0]),
@@ -55,10 +55,10 @@ public class Table implements Serializable {
                 this.name,
                 columns,
                 Integer.parseInt(prop.getProperty("MaximumEntriesinOctreeNode")),
-                columns[0]+columns[1]+columns[2]+"Index"
+                columns[0] + columns[1] + columns[2] + "Index"
         );
         String address = "src/resources/" + this.name + "_" + (index + 1) + "_index.ser";
-        this.indexes.add(new OctreeReference(columns, address, columns[0]+columns[1]+columns[2]+"Index"));
+        this.indexes.add(new OctreeReference(columns, address, columns[0] + columns[1] + columns[2] + "Index"));
 
         for (PageInfo pageInfo : this.pages) {
             // Load page from disk
@@ -84,7 +84,7 @@ public class Table implements Serializable {
         Properties prop = new Properties();
         FileInputStream fis = new FileInputStream("src/resources/DBApp.config");
         prop.load(fis);
-        this.addIndexToCsv(columns,columns[0]+columns[1]+columns[2]+"Index");
+        this.addIndexToCsv(columns, columns[0] + columns[1] + columns[2] + "Index");
 
         Octree tree = new Octree(Table.getMinForColumn(this.csvAddress, this.name, columns[0]),
                 Table.getMaxForColumn(this.csvAddress, this.name, columns[0]),
@@ -98,10 +98,10 @@ public class Table implements Serializable {
                 this.name,
                 columns,
                 Integer.parseInt(prop.getProperty("MaximumEntriesinOctreeNode")),
-                columns[0]+columns[1]+columns[2]+"Index"
+                columns[0] + columns[1] + columns[2] + "Index"
         );
         String address = "src/resources/" + this.name + "_" + (this.indexes.size() + 1) + "_index.ser";
-        this.indexes.add(new OctreeReference(columns, address, columns[0]+columns[1]+columns[2]+"Index"));
+        this.indexes.add(new OctreeReference(columns, address, columns[0] + columns[1] + columns[2] + "Index"));
 
         for (PageInfo pageInfo : this.pages) {
             // Load page from disk
@@ -198,7 +198,7 @@ public class Table implements Serializable {
         }
 
 
-        if(reset){
+        if (reset) {
             for (int i = 0; i < this.indexes.size(); i++) {
                 if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
                     Octree octree = Octree.read(this.indexes.get(i).address);
@@ -206,12 +206,12 @@ public class Table implements Serializable {
 
                     Page.deletePage(this.indexes.get(i).address);
                     this.indexes.remove(i);
-                    this.addIndex(columns,i);
+                    this.addIndex(columns, i);
                     break;
                 }
 
             }
-        }else{
+        } else {
             for (int i = 0; i < this.indexes.size(); i++) {
                 if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
                     Octree octree = Octree.read(this.indexes.get(i).address);
@@ -263,21 +263,21 @@ public class Table implements Serializable {
                 Object z = tuple.get(octree.columns[2]);
 
 
-                IndexReference ref = octree.search(x,y,z);
+                IndexReference ref = octree.search(x, y, z);
 
                 String address = ref.pageAddress;
                 for (int j = 0; j < this.pages.size(); j++) {
                     if (this.pages.get(j).address.equals(address)) {
-                            Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
-                            octree.delete(x,y,z);
+                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                        octree.delete(x, y, z);
 
-                            hasIndex = true;
+                        hasIndex = true;
                     }
                 }
             }
 
         }
-        if(!hasIndex){
+        if (!hasIndex) {
             for (int i = 0; i < this.pages.size(); i++) {
                 if (i != this.pages.size() - 1) {
                     if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
@@ -310,7 +310,7 @@ public class Table implements Serializable {
                 Object z = tuple.get(octree.columns[2]);
                 IndexReference ref = octree.search(x, y, z);
 
-                if(ref != null) {
+                if (ref != null) {
 
 
                     String address = ref.pageAddress;
@@ -332,7 +332,7 @@ public class Table implements Serializable {
             }
 
         }
-        if(!hasIndex){
+        if (!hasIndex) {
             for (int i = 0; i < this.pages.size(); i++) {
                 PageInfo deletedFrom = Page.deleteFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey);
                 if (deletedFrom.noOfTuples == 0) {
@@ -399,7 +399,8 @@ public class Table implements Serializable {
 
         return tables;
     }
-    public void addIndexToCsv( String[] columns, String name) throws IOException, CsvValidationException {
+
+    public void addIndexToCsv(String[] columns, String name) throws IOException, CsvValidationException {
         String csvAddress = this.csvAddress;
         Page.createPage("src/resources/temp.csv");
         CSVWriter writer = new CSVWriter(new FileWriter("src/resources/temp.csv", true));
@@ -421,7 +422,7 @@ public class Table implements Serializable {
         writer.close();
 
         Page.deletePage(this.csvAddress);
-        Page.renameFile("src/resources/temp.csv",this.csvAddress);
+        Page.renameFile("src/resources/temp.csv", this.csvAddress);
 
     }
 
@@ -898,13 +899,137 @@ public class Table implements Serializable {
         fileIn.close();
         ArrayList<String> result = new ArrayList<>();
 
-        for(int i =0; i<table.indexes.size();i++){
+        for (int i = 0; i < table.indexes.size(); i++) {
             result.add(table.indexes.get(i).columns[0]);
             result.add(table.indexes.get(i).columns[1]);
             result.add(table.indexes.get(i).columns[2]);
         }
         return result;
     }
+
+    public Iterator<Hashtable<String, Object>> selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators) throws Exception {
+        List<Hashtable<String, Object>> result = new ArrayList<>();
+        TableIterator it = null;
+        Boolean hasindex = false;
+        ArrayList<String[]> columnsList = findAndedTriple(arrSQLTerms,strarrOperators);
+        for(int i =0;i<columnsList.size();i++){
+            String[] columns = columnsList.get(i);
+            if(Arrays.stream(this.indexes.get(i).columns).toList().containsAll(Arrays.stream(columns).toList())){
+                Octree tree = Octree.read(this.indexes.get(i).address);
+                 it = this.getTableIteratorIndex(tree.getAllNodesAddresses());
+                 hasindex = true;
+            }
+        }
+        if(!hasindex){
+            it = this.getTableIterator();
+        }
+
+        while (it.hasNext()) {
+            Hashtable<String, Object> row = it.next();
+
+            boolean rowMatches = checkRowMatchesTerms(row, arrSQLTerms, strarrOperators);
+            if (rowMatches) {
+                result.add(row);
+            }
+        }
+
+        return result.iterator();
+    }
+
+    private boolean checkRowMatchesTerms(Hashtable<String, Object> row, SQLTerm[] arrSQLTerms, String[] strarrOperators) throws CsvValidationException, IOException {
+        if (arrSQLTerms.length == 0) {
+            return true;
+        }
+
+        boolean matches = checkRowMatchesTerm(row, arrSQLTerms[0]);
+        for (int i = 1; i < arrSQLTerms.length; i++) {
+
+            boolean termMatches = checkRowMatchesTerm(row, arrSQLTerms[i]);
+            switch (strarrOperators[i - 1]) {
+                case "AND":
+                    matches = matches && termMatches;
+                    break;
+                case "OR":
+                    matches = matches || termMatches;
+                    break;
+                case "XOR":
+                    matches = matches ^ termMatches;
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported operator " + strarrOperators[i - 1]);
+            }
+        }
+
+        return matches;
+    }
+
+    private boolean checkRowMatchesTerm(Hashtable<String, Object> row, SQLTerm term) throws CsvValidationException, IOException {
+        Object value = row.get(term._strColumnName);
+        switch (term._strOperator) {
+            case "=":
+                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) == 0;
+            case "!=":
+                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) != 0;
+            case "<":
+                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) < 0;
+            case ">":
+                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) > 0;
+            case "<=":
+                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) <= 0;
+            case ">=":
+                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) >= 0;
+            default:
+                throw new UnsupportedOperationException("Unsupported operator " + term._strOperator);
+        }
+    }
+
+
+
+    public TableIterator getTableIterator() throws IOException, ClassNotFoundException {
+        List<String> pageAddresses = new ArrayList<>();
+        for (int i =0;i<this.pages.size();i++){
+            pageAddresses.add(this.pages.get(i).address);
+        }
+        return new TableIterator(pageAddresses);
+    }
+    public TableIterator getTableIteratorIndex(List<String> pageAddresses) throws IOException, ClassNotFoundException {
+        return new TableIterator(pageAddresses);
+    }
+
+    public ArrayList<String[]> findAndedTriple(SQLTerm[] arrSQLTerms, String[] strarrOperators) {
+        ArrayList<String[]> results = new ArrayList<>();
+
+        // We need at least 3 terms and 2 operators for a triple
+        if (arrSQLTerms.length < 3 || strarrOperators.length < 2) {
+            return results;
+        }
+
+        for (int i = 0; i < arrSQLTerms.length - 2; i++) {
+            for (int j = i + 1; j < arrSQLTerms.length - 1; j++) {
+                for (int k = j + 1; k < arrSQLTerms.length; k++) {
+                    // All operators between the terms need to be AND
+                    if (areAllAnds(strarrOperators, i, j, k)) {
+                        results.add(new String[]{
+                                arrSQLTerms[i]._strColumnName,
+                                arrSQLTerms[j]._strColumnName,
+                                arrSQLTerms[k]._strColumnName
+                        });
+                    }
+                }
+            }
+        }
+        return results;
+    }
+
+    private boolean areAllAnds(String[] strarrOperators, int i, int j, int k) {
+        for (int index = i; index < k; index++) {
+            if (!strarrOperators[index].equals("AND")) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
 
 

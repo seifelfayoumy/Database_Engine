@@ -1,6 +1,8 @@
 import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvValidationException;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -155,10 +157,20 @@ public class DBApp {
 
     }
 
-//    public Iterator selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators)
-//            throws DBAppException{
-//
-//    }
+    public Iterator<Hashtable<String,Object>> selectFromTable(SQLTerm[] arrSQLTerms, String[] strarrOperators)
+            throws DBAppException{
+        String tableName = arrSQLTerms[0]._strTableName;
+        for(int i=0;i<this.tables.size();i++){
+            if(this.tables.get(i).name.equals(tableName)){
+                try {
+                    return this.tables.get(i).selectFromTable(arrSQLTerms,strarrOperators);
+                } catch (Exception e) {
+                    throw new DBAppException(e.getMessage());
+                }
+            }
+        }
+        return null;
+    }
 //
 //    //BONUS
 //    public Iterator parseSQL( StringBuffer strbufSQL ) throws DBAppException{

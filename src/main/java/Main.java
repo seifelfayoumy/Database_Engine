@@ -1,8 +1,6 @@
 import java.time.Period;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Hashtable;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -37,10 +35,8 @@ public class Main {
 //
 
 
-
-
 //                            Hashtable htblColNameValue = new Hashtable<String, Object>();
-//                            htblColNameValue.put("id", new Integer(5));
+//                            htblColNameValue.put("id", new Integer(11));
 //                            htblColNameValue.put("gpa", new Double(11));
 //                            htblColNameValue.put("name", new String("Ahmed" ) );
 ////            Hashtable htblColNameValue = new Hashtable<String, Object>();
@@ -50,9 +46,41 @@ public class Main {
 //
 //                            dbApp.insertIntoTable("user", htblColNameValue);
 
+            SQLTerm[] arrSQLTerms;
+            arrSQLTerms = new SQLTerm[3];
+            arrSQLTerms[0] = new SQLTerm();
+            arrSQLTerms[1] = new SQLTerm();
+            arrSQLTerms[2] = new SQLTerm();
+            arrSQLTerms[0]._strTableName = "user";
+            arrSQLTerms[0]._strColumnName = "name";
+            arrSQLTerms[0]._strOperator = "=";
+            arrSQLTerms[0]._objValue = "ahmed1";
+            arrSQLTerms[1]._strTableName = "user";
+            arrSQLTerms[1]._strColumnName = "gpa";
+            arrSQLTerms[1]._strOperator = "=";
+            arrSQLTerms[1]._objValue = new Double(11);
+            arrSQLTerms[2]._strTableName = "user";
+            arrSQLTerms[2]._strColumnName = "id";
+            arrSQLTerms[2]._strOperator = "=";
+            arrSQLTerms[2]._objValue = new Integer(1);
+            String[] strarrOperators = new String[2];
+            strarrOperators[0] = "AND";
+            strarrOperators[1] = "AND";
 
+            Iterator<Hashtable<String,Object>> resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+            while (resultSet.hasNext()) {
+                Hashtable<String, Object> row = resultSet.next();
+                Enumeration<String> keys = row.keys();
+                while (keys.hasMoreElements()) {
+                    String currColumnName = keys.nextElement();
+                    System.out.print("  " + currColumnName + ": ");
+                    System.out.print(row.get(currColumnName));
+                }
+                System.out.println();
 
-       //     Table.printAllIndexes("user");
+            }
+
+            //     Table.printAllIndexes("user");
 //
 //                            Hashtable htblColNameValue = new Hashtable<String, Object>();
 ////                            htblColNameValue.put("gpa", new Double(0.988));
@@ -61,7 +89,7 @@ public class Main {
 //
 //                            dbApp.updateTable("user","1", htblColNameValue);
 
-                //
+            //
 //                //
 //                            Hashtable htblColNameValue = new Hashtable<String,Object>();
 //                            htblColNameValue.put("id", new Integer( 6 ));
@@ -70,23 +98,23 @@ public class Main {
 //
 //                            dbApp.deleteFromTable("user",htblColNameValue);
 
-                //            Object y = new Double(11.0);
-                //            Object x = new Double(11);
-                //            System.out.println(y.equals(x));
-                //
-                //            ((Double) x).compareTo(Double.parseDouble("22"));
+            //            Object y = new Double(11.0);
+            //            Object x = new Double(11);
+            //            System.out.println(y.equals(x));
+            //
+            //            ((Double) x).compareTo(Double.parseDouble("22"));
 
-                //            Table.printAllPagesClusterKey("user","id");
+            //            Table.printAllPagesClusterKey("user","id");
 //                Table.printAllPages("user");
 
-            Table.printAllPages("user");
-            Table.printAllIndexes("user");
+
+//            Table.printAllIndexes("user");
+//            Table.printAllPages("user");
 
 
-
-           // ChronoUnit.DAYS.between(d1,d2);
-           // LocalDate median = d1.plusDays(ChronoUnit.DAYS.between(gerbutsmin, gerbutsmax) / 2);
-         //  System.out.println(test);
+            // ChronoUnit.DAYS.between(d1,d2);
+            // LocalDate median = d1.plusDays(ChronoUnit.DAYS.between(gerbutsmin, gerbutsmax) / 2);
+            //  System.out.println(test);
 
 //            System.out.println("A".compareTo("zzzzzzzzzz"));
         } catch (Exception e) {
