@@ -74,6 +74,16 @@ public abstract class Page implements Serializable {
         return lastElement;
     }
 
+    public static Hashtable<String, Object> getTuple(PageInfo pageInfo, Object clusterKeyValue, String clusterKey) throws IOException, ClassNotFoundException {
+        Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
+        for (int i = 0; i < tuples.size(); i++) {
+            if (tuples.get(i).get(clusterKey).equals(clusterKeyValue)) {
+                return tuples.get(i);
+            }
+        }
+        return null;
+    }
+
     public static PageInfo removeLastTuple(PageInfo pageInfo, String clusteringKey) throws IOException, ClassNotFoundException {
         Vector<Hashtable<String, Object>> tuples = Page.readPage(pageInfo.address);
         tuples.remove(tuples.size() - 1);
@@ -206,7 +216,8 @@ public abstract class Page implements Serializable {
         pageInfo.address = newAddress;
         return pageInfo;
     }
-    public static void renameFile(String  address, String newAddress) {
+
+    public static void renameFile(String address, String newAddress) {
         File oldFile = new File(address);
         File newFile = new File(newAddress);
         oldFile.renameTo(newFile);

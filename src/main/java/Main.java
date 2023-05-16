@@ -6,10 +6,11 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Started main function...");
 
+        //TEST IN THE TRY CATCH BELOW:
 
         try {
-            DBApp dbApp = new DBApp();
-////////
+//            DBApp dbApp = new DBApp();
+//////
 //            Hashtable htblColNameType = new Hashtable( );
 //            htblColNameType.put("id", "java.lang.Integer");
 //            htblColNameType.put("name", "java.lang.String");
@@ -36,9 +37,9 @@ public class Main {
 
 
 //                            Hashtable htblColNameValue = new Hashtable<String, Object>();
-//                            htblColNameValue.put("id", new Integer(11));
+//                            htblColNameValue.put("id", new Integer(7));
 //                            htblColNameValue.put("gpa", new Double(11));
-//                            htblColNameValue.put("name", new String("Ahmed" ) );
+//                            htblColNameValue.put("name", new String("Ahmed1" ) );
 ////            Hashtable htblColNameValue = new Hashtable<String, Object>();
 ////            htblColNameValue.put("id", new Integer(3));
 ////            htblColNameValue.put("gpa", new Integer(11));
@@ -46,55 +47,55 @@ public class Main {
 //
 //                            dbApp.insertIntoTable("user", htblColNameValue);
 
-            SQLTerm[] arrSQLTerms;
-            arrSQLTerms = new SQLTerm[3];
-            arrSQLTerms[0] = new SQLTerm();
-            arrSQLTerms[1] = new SQLTerm();
-            arrSQLTerms[2] = new SQLTerm();
-            arrSQLTerms[0]._strTableName = "user";
-            arrSQLTerms[0]._strColumnName = "name";
-            arrSQLTerms[0]._strOperator = "=";
-            arrSQLTerms[0]._objValue = "ahmed1";
-            arrSQLTerms[1]._strTableName = "user";
-            arrSQLTerms[1]._strColumnName = "gpa";
-            arrSQLTerms[1]._strOperator = "=";
-            arrSQLTerms[1]._objValue = new Double(11);
-            arrSQLTerms[2]._strTableName = "user";
-            arrSQLTerms[2]._strColumnName = "id";
-            arrSQLTerms[2]._strOperator = "=";
-            arrSQLTerms[2]._objValue = new Integer(1);
-            String[] strarrOperators = new String[2];
-            strarrOperators[0] = "AND";
-            strarrOperators[1] = "AND";
-
-            Iterator<Hashtable<String,Object>> resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
-            while (resultSet.hasNext()) {
-                Hashtable<String, Object> row = resultSet.next();
-                Enumeration<String> keys = row.keys();
-                while (keys.hasMoreElements()) {
-                    String currColumnName = keys.nextElement();
-                    System.out.print("  " + currColumnName + ": ");
-                    System.out.print(row.get(currColumnName));
-                }
-                System.out.println();
-
-            }
+//            SQLTerm[] arrSQLTerms;
+//            arrSQLTerms = new SQLTerm[3];
+//            arrSQLTerms[0] = new SQLTerm();
+//            arrSQLTerms[1] = new SQLTerm();
+//            arrSQLTerms[2] = new SQLTerm();
+//            arrSQLTerms[0]._strTableName = "user";
+//            arrSQLTerms[0]._strColumnName = "name";
+//            arrSQLTerms[0]._strOperator = "=";
+//            arrSQLTerms[0]._objValue = "ahmed1";
+//            arrSQLTerms[1]._strTableName = "user";
+//            arrSQLTerms[1]._strColumnName = "gpa";
+//            arrSQLTerms[1]._strOperator = "=";
+//            arrSQLTerms[1]._objValue = new Double(11);
+//            arrSQLTerms[2]._strTableName = "user";
+//            arrSQLTerms[2]._strColumnName = "id";
+//            arrSQLTerms[2]._strOperator = "=";
+//            arrSQLTerms[2]._objValue = new Integer(1);
+//            String[] strarrOperators = new String[2];
+//            strarrOperators[0] = "AND";
+//            strarrOperators[1] = "OR";
+//
+//            Iterator<Hashtable<String,Object>> resultSet = dbApp.selectFromTable(arrSQLTerms, strarrOperators);
+//            while (resultSet.hasNext()) {
+//                Hashtable<String, Object> row = resultSet.next();
+//                Enumeration<String> keys = row.keys();
+//                while (keys.hasMoreElements()) {
+//                    String currColumnName = keys.nextElement();
+//                    System.out.print("  " + currColumnName + ": ");
+//                    System.out.print(row.get(currColumnName));
+//                }
+//                System.out.println();
+//
+//            }
 
             //     Table.printAllIndexes("user");
 //
 //                            Hashtable htblColNameValue = new Hashtable<String, Object>();
 ////                            htblColNameValue.put("gpa", new Double(0.988));
 //                            htblColNameValue.put("name", new String("Ahmed123" ) );
-//                //            htblColNameValue.put("id", new Integer(1 ) );
+////                            htblColNameValue.put("id", new Integer(1 ) );
 //
-//                            dbApp.updateTable("user","1", htblColNameValue);
+//                            dbApp.updateTable("user","5", htblColNameValue);
 
             //
 //                //
 //                            Hashtable htblColNameValue = new Hashtable<String,Object>();
-//                            htblColNameValue.put("id", new Integer( 6 ));
+//                            htblColNameValue.put("id", new Integer( 11 ));
 //                            htblColNameValue.put("gpa", new Double( 11 ));
-//                            htblColNameValue.put("name", new String( "ahmed" ));
+//                            htblColNameValue.put("name", new String( "ahmed123" ));
 //
 //                            dbApp.deleteFromTable("user",htblColNameValue);
 
@@ -117,6 +118,11 @@ public class Main {
             //  System.out.println(test);
 
 //            System.out.println("A".compareTo("zzzzzzzzzz"));
+
+//           StringBuffer sql = new StringBuffer("INSERT INTO user (id, gpa, name) VALUES(1,11,Ahmed)");
+//
+//           dbApp.parseSQL(sql);
+//            Table.printAllPages("user");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

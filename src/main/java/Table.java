@@ -200,7 +200,7 @@ public class Table implements Serializable {
 
         if (reset) {
             for (int i = 0; i < this.indexes.size(); i++) {
-                if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet()) && tuple.keySet().size() == 3 && tuple.keySet().size() == 3) {
                     Octree octree = Octree.read(this.indexes.get(i).address);
                     String[] columns = octree.columns;
 
@@ -213,7 +213,7 @@ public class Table implements Serializable {
             }
         } else {
             for (int i = 0; i < this.indexes.size(); i++) {
-                if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+                if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet()) && tuple.keySet().size() == 3) {
                     Octree octree = Octree.read(this.indexes.get(i).address);
                     // Create an IndexReference
                     Object x = tuple.get(octree.columns[0]);
@@ -254,43 +254,62 @@ public class Table implements Serializable {
                 clusterKeyValueObject = new NullObject();
         }
         Boolean hasIndex = false;
+
+        Hashtable<String, Object> oldRow = new Hashtable<>();
+        Hashtable<String, Object> newRow = new Hashtable<>();
+        for (int i = 0; i < this.pages.size(); i++) {
+            if (i != this.pages.size() - 1) {
+                if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
+                        && Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i + 1).minValue) < 0) {
+                    oldRow = Page.getTuple(this.pages.get(i), clusterKeyValueObject, clusteringKey);
+                    Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                    newRow = Page.getTuple(this.pages.get(i), clusterKeyValueObject, clusteringKey);
+                }
+            } else {
+                if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0) {
+                    oldRow = Page.getTuple(this.pages.get(i), clusterKeyValueObject, clusteringKey);
+                    Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+                    newRow = Page.getTuple(this.pages.get(i), clusterKeyValueObject, clusteringKey);
+                }
+            }
+        }
+
         for (int i = 0; i < this.indexes.size(); i++) {
-            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(oldRow.keySet())) {
+
+
                 Octree octree = Octree.read(this.indexes.get(i).address);
 
-                Object x = tuple.get(octree.columns[0]);
-                Object y = tuple.get(octree.columns[1]);
-                Object z = tuple.get(octree.columns[2]);
+                Object x = newRow.get(octree.columns[0]);
+                Object y = newRow.get(octree.columns[1]);
+                Object z = newRow.get(octree.columns[2]);
+
+                Object oldX = oldRow.get(octree.columns[0]);
+                Object oldY = oldRow.get(octree.columns[1]);
+                Object oldZ = oldRow.get(octree.columns[2]);
 
 
-                IndexReference ref = octree.search(x, y, z);
-
-                String address = ref.pageAddress;
-                for (int j = 0; j < this.pages.size(); j++) {
-                    if (this.pages.get(j).address.equals(address)) {
-                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
-                        octree.delete(x, y, z);
-
-                        hasIndex = true;
-                    }
+                IndexReference ref = octree.search(oldX, oldY, oldZ);
+                if (ref != null) {
+                    octree.delete(oldX, oldY, oldZ);
+                    octree.insert(new IndexReference(x, y, z, ref.pageAddress));
+                    octree.save(this.indexes.get(i).address);
                 }
+
+
+//                String address = ref.pageAddress;
+//                for (int j = 0; j < this.pages.size(); j++) {
+//                    if (this.pages.get(j).address.equals(address)) {
+//                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
+//                        octree.delete(x, y, z);
+//
+//                        hasIndex = true;
+//                    }
+//                }
             }
 
         }
-        if (!hasIndex) {
-            for (int i = 0; i < this.pages.size(); i++) {
-                if (i != this.pages.size() - 1) {
-                    if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0
-                            && Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i + 1).minValue) < 0) {
-                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
-                    }
-                } else {
-                    if (Table.compareClusterKey(this.csvAddress, this.name, clusterKeyValueObject, this.pages.get(i).minValue) >= 0) {
-                        Page.updateFromPage(this.csvAddress, this.name, this.pages.get(i), tuple, this.clusteringKey, clusterKeyValueObject);
-                    }
-                }
-            }
-        }
+
         this.save();
 
     }
@@ -301,7 +320,7 @@ public class Table implements Serializable {
         String[] columns;
         Boolean hasIndex = false;
         for (int i = 0; i < this.indexes.size(); i++) {
-            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet())) {
+            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(tuple.keySet()) && tuple.keySet().size() == 3) {
                 Octree octree = Octree.read(this.indexes.get(i).address);
                 columns = octree.columns;
 
@@ -911,16 +930,16 @@ public class Table implements Serializable {
         List<Hashtable<String, Object>> result = new ArrayList<>();
         TableIterator it = null;
         Boolean hasindex = false;
-        ArrayList<String[]> columnsList = findAndedTriple(arrSQLTerms,strarrOperators);
-        for(int i =0;i<columnsList.size();i++){
+        ArrayList<String[]> columnsList = findAndedTriple(arrSQLTerms, strarrOperators);
+        for (int i = 0; i < columnsList.size(); i++) {
             String[] columns = columnsList.get(i);
-            if(Arrays.stream(this.indexes.get(i).columns).toList().containsAll(Arrays.stream(columns).toList())){
+            if (Arrays.stream(this.indexes.get(i).columns).toList().containsAll(Arrays.stream(columns).toList())) {
                 Octree tree = Octree.read(this.indexes.get(i).address);
-                 it = this.getTableIteratorIndex(tree.getAllNodesAddresses());
-                 hasindex = true;
+                it = this.getTableIteratorIndex(tree.getAllNodesAddresses());
+                hasindex = true;
             }
         }
-        if(!hasindex){
+        if (!hasindex) {
             it = this.getTableIterator();
         }
 
@@ -967,31 +986,31 @@ public class Table implements Serializable {
         Object value = row.get(term._strColumnName);
         switch (term._strOperator) {
             case "=":
-                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) == 0;
+                return Octree.compareKey(value, term._objValue, Table.getTypeForColumn(this.csvAddress, this.name, term._strColumnName)) == 0;
             case "!=":
-                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) != 0;
+                return Octree.compareKey(value, term._objValue, Table.getTypeForColumn(this.csvAddress, this.name, term._strColumnName)) != 0;
             case "<":
-                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) < 0;
+                return Octree.compareKey(value, term._objValue, Table.getTypeForColumn(this.csvAddress, this.name, term._strColumnName)) < 0;
             case ">":
-                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) > 0;
+                return Octree.compareKey(value, term._objValue, Table.getTypeForColumn(this.csvAddress, this.name, term._strColumnName)) > 0;
             case "<=":
-                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) <= 0;
+                return Octree.compareKey(value, term._objValue, Table.getTypeForColumn(this.csvAddress, this.name, term._strColumnName)) <= 0;
             case ">=":
-                return Octree.compareKey(value,term._objValue,Table.getTypeForColumn(this.csvAddress,this.name,term._strColumnName)) >= 0;
+                return Octree.compareKey(value, term._objValue, Table.getTypeForColumn(this.csvAddress, this.name, term._strColumnName)) >= 0;
             default:
                 throw new UnsupportedOperationException("Unsupported operator " + term._strOperator);
         }
     }
 
 
-
     public TableIterator getTableIterator() throws IOException, ClassNotFoundException {
         List<String> pageAddresses = new ArrayList<>();
-        for (int i =0;i<this.pages.size();i++){
+        for (int i = 0; i < this.pages.size(); i++) {
             pageAddresses.add(this.pages.get(i).address);
         }
         return new TableIterator(pageAddresses);
     }
+
     public TableIterator getTableIteratorIndex(List<String> pageAddresses) throws IOException, ClassNotFoundException {
         return new TableIterator(pageAddresses);
     }
@@ -1029,8 +1048,6 @@ public class Table implements Serializable {
         }
         return true;
     }
-
-
 
 
 }

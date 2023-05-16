@@ -12,7 +12,7 @@ public class SQLTerm {
         this._objValue = _objValue;
     }
 
-    public SQLTerm(){
+    public SQLTerm() {
         this._strTableName = null;
         this._strColumnName = null;
         this._strOperator = null;

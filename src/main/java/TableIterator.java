@@ -4,7 +4,7 @@ import java.util.*;
 public class TableIterator implements Iterator<Hashtable<String, Object>> {
     private final List<String> pageAddresses;
     private int currentPageIndex;
-    private Vector<Hashtable<String,Object>> currentPage;
+    private Vector<Hashtable<String, Object>> currentPage;
     private int currentRowIndex;
 
     public TableIterator(List<String> pageAddresses) throws IOException, ClassNotFoundException {
